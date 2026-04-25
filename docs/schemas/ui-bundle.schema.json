@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-coding-session-sync.local/schemas/ui-bundle.schema.json",
+  "title": "AI Coding Session Sync UI Bundle",
+  "description": "Draft schema for a single-file UI bootstrap payload that aggregates latest, manifest, inspect, and handoff data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "generated_at",
+    "entry",
+    "latest",
+    "manifest",
+    "inspect",
+    "handoff"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Protocol schema version used by the bundled payload.",
+      "examples": [
+        "0.1.0"
+      ]
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "description": "Stable fixture identifier for UI development."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the aggregate payload was assembled."
+    },
+    "entry": {
+      "$ref": "#/$defs/entry"
+    },
+    "latest": {
+      "type": "object",
+      "description": "Embedded latest pointer payload. Validate this sub-object against latest-pointer.schema.json."
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Embedded snapshot manifest. Validate this sub-object against manifest.schema.json."
+    },
+    "inspect": {
+      "type": "object",
+      "description": "Embedded inspect output. Validate this sub-object against inspect-output.schema.json."
+    },
+    "handoff": {
+      "$ref": "#/$defs/handoff"
+    }
+  },
+  "$defs": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "codex",
+        "claude"
+      ]
+    },
+    "toolList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/tool"
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "active_tool",
+        "available_tools",
+        "snapshot_id",
+        "handoff_path"
+      ],
+      "properties": {
+        "project_id": {
+          "type": "string"
+        },
+        "active_tool": {
+          "$ref": "#/$defs/tool"
+        },
+        "available_tools": {
+          "$ref": "#/$defs/toolList"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9._-]+-(all|codex|claude)$"
+        },
+        "handoff_path": {
+          "type": "string",
+          "pattern": "^handoffs/.+\\.md$"
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "format",
+        "title",
+        "updated_at",
+        "current_goal",
+        "summary",
+        "markdown"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^handoffs/.+\\.md$"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "markdown"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "current_goal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "markdown": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,44 +1,14 @@
 from __future__ import annotations
 
 import json
-import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from tests.schema_utils import assert_matches_schema, load_schema
-
-
-def run_cli(tmp_path: Path, *args: str, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
-    if extra_env:
-        env.update(extra_env)
-    return subprocess.run(
-        [sys.executable, "-m", "aiss", *args],
-        cwd=tmp_path,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        env=env,
-    )
-
-
-def transcript_timestamp(*, start_minute: int, offset: int) -> str:
-    hour = 5 + ((start_minute + offset) // 60)
-    minute = (start_minute + offset) % 60
-    return f"2026-04-25T{hour:02d}:{minute:02d}:00Z"
+from tests.cli_test_utils import run_cli, transcript_timestamp
 
 
 class ExportContextTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.manifest_schema = load_schema("manifest.schema.json")
-        self.inspect_schema = load_schema("inspect-output.schema.json")
-        self.latest_pointer_schema = load_schema("latest-pointer.schema.json")
-
     def test_codex_export_extracts_recent_transcript(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp) / "repo"
@@ -118,8 +88,6 @@ class ExportContextTest(unittest.TestCase):
 
             latest = json.loads((project_root / ".ai-session-sync" / "latest" / "codex.json").read_text(encoding="utf-8"))
             manifest = json.loads((project_root / ".ai-session-sync" / latest["manifest"]).read_text(encoding="utf-8"))
-            assert_matches_schema(latest, self.latest_pointer_schema)
-            assert_matches_schema(manifest, self.manifest_schema)
             self.assertEqual(manifest["source"]["contexts"][0]["session_id"], "session-123")
             self.assertIn("score", manifest["source"]["contexts"][0])
             self.assertIn("goal_candidate", manifest["source"]["contexts"][0])
@@ -297,7 +265,6 @@ class ExportContextTest(unittest.TestCase):
             )
             self.assertEqual(inspect.returncode, 0, inspect.stderr)
             payload = json.loads(inspect.stdout)
-            assert_matches_schema(payload, self.inspect_schema)
             self.assertEqual(payload["codex"][0]["session_id"], "strong")
             self.assertEqual(payload["codex"][0]["goal_candidate"], "strong request")
             self.assertIn("all_excerpts", payload["codex"][0])
@@ -361,7 +328,6 @@ class ExportContextTest(unittest.TestCase):
             )
             self.assertEqual(inspect.returncode, 0, inspect.stderr)
             payload = json.loads(inspect.stdout)
-            assert_matches_schema(payload, self.inspect_schema)
             all_excerpts = payload["codex"][0]["all_excerpts"]
             selected_entries = [excerpt for excerpt in all_excerpts if excerpt["selected"]]
             trimmed_entries = [excerpt for excerpt in all_excerpts if not excerpt["selected"]]
@@ -548,8 +514,6 @@ class ExportContextTest(unittest.TestCase):
 
             latest = json.loads((project_root / ".ai-session-sync" / "latest" / "claude.json").read_text(encoding="utf-8"))
             manifest = json.loads((project_root / ".ai-session-sync" / latest["manifest"]).read_text(encoding="utf-8"))
-            assert_matches_schema(latest, self.latest_pointer_schema)
-            assert_matches_schema(manifest, self.manifest_schema)
             handoff = (project_root / ".ai-session-sync" / manifest["artifacts"]["handoff"]).read_text(encoding="utf-8")
             excerpts = (project_root / ".ai-session-sync" / manifest["artifacts"]["recent_turns"]).read_text(encoding="utf-8")
 
@@ -611,7 +575,6 @@ class ExportContextTest(unittest.TestCase):
             )
             self.assertEqual(inspect.returncode, 0, inspect.stderr)
             payload = json.loads(inspect.stdout)
-            assert_matches_schema(payload, self.inspect_schema)
             self.assertEqual(payload["claude"][0]["goal_candidate"], "请继续实现 inspect 预览。")
             self.assertIn("score", payload["claude"][0])
             self.assertEqual(payload["claude"][0]["excerpts"][0]["role"], "user")

@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot_id": "20260425T080000Z-sample-macbook-codex",
+  "created_at": "2026-04-25T08:00:00+00:00",
+  "project": {
+    "id": "sample-project",
+    "root_hint": ".",
+    "git_remote": "https://example.com/org/sample-project.git",
+    "branch": "main",
+    "head": "abc1234",
+    "dirty": false
+  },
+  "source": {
+    "tool": "codex",
+    "tool_version": "unknown",
+    "provider_profile": "local",
+    "device_id": "sample-macbook",
+    "contexts": [
+      {
+        "tool": "codex",
+        "source_kind": "transcript",
+        "session_id": "session-sample-001",
+        "title": "Implement compare inspector",
+        "updated_at": "2026-04-25T07:58:30Z",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-sample.jsonl",
+        "excerpt_count": 4,
+        "total_excerpt_count": 9,
+        "total_user_count": 2,
+        "total_assistant_count": 7,
+        "score": 243,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "7 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Continue implementing inspect compare metadata for the Web UI."
+      }
+    ]
+  },
+  "artifacts": {
+    "handoff": "handoffs/20260425T080000Z-sample-macbook-codex.md",
+    "recent_turns": "excerpts/20260425T080000Z-sample-macbook-codex.jsonl",
+    "patch": null,
+    "native": []
+  },
+  "redaction": {
+    "enabled": true,
+    "ruleset": "default",
+    "warnings": []
+  },
+  "compatibility": {
+    "import_strategy": "handoff",
+    "native_resume_supported": "unknown"
+  }
+}

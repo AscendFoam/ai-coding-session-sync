@@ -21,3 +21,19 @@ Use this directory for:
 - screenshots or demos that need stable input data.
 
 If test-only fixtures are needed later, prefer `tests/fixtures/` over `.ai-session-sync/`.
+
+## Included Fixtures
+
+- `sample-manifest.json`
+- `sample-inspect-output.json`
+- `sample-latest-pointer.json`
+- `sample-latest-conflict.json`
+- `sample-handoff.md`
+- `frontend-consumption.md`
+- `sample-manifest-dirty.json`
+- `sample-inspect-output-dirty.json`
+- `sample-ui-bundle.json`
+
+These files are intentionally public-safe, schema-shaped, and stable enough for early Web UI development.
+
+`sample-ui-bundle.json` intentionally duplicates the clean `latest` + `manifest` + `inspect` + `handoff` sample set into one payload so a prototype page can boot from a single request.

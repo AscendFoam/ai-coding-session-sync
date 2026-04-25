@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot_id": "20260425T081500Z-sample-windows-claude",
+  "created_at": "2026-04-25T08:15:00+00:00",
+  "project": {
+    "id": "sample-project",
+    "root_hint": ".",
+    "git_remote": "https://example.com/org/sample-project.git",
+    "branch": "feature/inspect-ui",
+    "head": "def5678",
+    "dirty": true
+  },
+  "source": {
+    "tool": "claude",
+    "tool_version": "unknown",
+    "provider_profile": "local",
+    "device_id": "sample-windows",
+    "contexts": [
+      {
+        "tool": "claude",
+        "source_kind": "transcript",
+        "session_id": "session-sample-claude-002",
+        "title": "Refine compare fixture coverage",
+        "updated_at": "2026-04-25T08:13:10Z",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-compare.jsonl",
+        "excerpt_count": 5,
+        "total_excerpt_count": 11,
+        "total_user_count": 2,
+        "total_assistant_count": 9,
+        "score": 251,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "9 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Cover dirty, patch, and warning states in the Web UI."
+      },
+      {
+        "tool": "claude",
+        "source_kind": "transcript",
+        "session_id": "session-sample-claude-003",
+        "title": "Validate manifest contract",
+        "updated_at": "2026-04-25T08:11:40Z",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-manifest.jsonl",
+        "excerpt_count": 3,
+        "total_excerpt_count": 6,
+        "total_user_count": 1,
+        "total_assistant_count": 5,
+        "score": 219,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "1 user excerpt(s)",
+          "5 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Make the manifest fixture show dirty worktree and patch state."
+      }
+    ]
+  },
+  "artifacts": {
+    "handoff": "handoffs/20260425T081500Z-sample-windows-claude.md",
+    "recent_turns": "excerpts/20260425T081500Z-sample-windows-claude.jsonl",
+    "patch": "patches/20260425T081500Z-sample-windows-claude.patch",
+    "native": []
+  },
+  "redaction": {
+    "enabled": true,
+    "ruleset": "default",
+    "warnings": [
+      "contains dirty worktree state",
+      "contains patch artifact reference",
+      "contains multiple ranked contexts"
+    ]
+  },
+  "compatibility": {
+    "import_strategy": "handoff",
+    "native_resume_supported": "unknown"
+  }
+}
