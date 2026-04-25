@@ -74,6 +74,32 @@ class CliSmokeTest(unittest.TestCase):
                 "manifests/20260425T080300Z-sample-windows-codex.json",
             )
 
+    def test_status_and_doctor_surface_sidecar_config_problems(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            init = run_cli(
+                tmp_path,
+                "init",
+                "--backend",
+                "git",
+                "--storage",
+                "sidecar-repo",
+            )
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            status = run_cli(tmp_path, "status", "--tool", "codex")
+            self.assertEqual(status.returncode, 0, status.stderr)
+            self.assertIn("Storage: sidecar-repo", status.stdout)
+            self.assertIn("Latest state: missing", status.stdout)
+            self.assertIn("sidecar git remote is not configured", status.stdout)
+
+            doctor = run_cli(tmp_path, "doctor", "--tool", "codex")
+            self.assertEqual(doctor.returncode, 0, doctor.stderr)
+            self.assertIn("Backend: git", doctor.stdout)
+            self.assertIn("Latest state: missing", doctor.stdout)
+            self.assertIn("warning: sidecar git remote is not configured", doctor.stdout)
+            self.assertIn("Run `aiss export --tool codex|claude` or `aiss pull` to create sync state.", doctor.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

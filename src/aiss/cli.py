@@ -21,6 +21,7 @@ from .adapters import (
 )
 from .backends import pull_git_sidecar, push_git_sidecar
 from .config import load_sync_config, require_git_sidecar_config
+from .doctor import inspect_sync_health
 from .handoff import render_excerpts, render_handoff, render_import_prompt
 from .project import default_project_id, device_id, find_project_root, git_info, run_git
 from .redaction import redact_text
@@ -58,7 +59,12 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.set_defaults(func=cmd_init)
 
     status_parser = subcommands.add_parser("status", help="Show project and sync status.")
+    status_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
     status_parser.set_defaults(func=cmd_status)
+
+    doctor_parser = subcommands.add_parser("doctor", help="Diagnose sync configuration and backend health.")
+    doctor_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
+    doctor_parser.set_defaults(func=cmd_doctor)
 
     export_parser = subcommands.add_parser("export", help="Export a handoff snapshot.")
     export_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
@@ -164,11 +170,12 @@ def cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_status(_: argparse.Namespace) -> int:
+def cmd_status(args: argparse.Namespace) -> int:
     root = find_project_root(Path.cwd())
     sync_root = root / SYNC_DIR
     info = git_info(root)
     config = load_sync_config(root) if (sync_root / "config.toml").exists() else None
+    health = inspect_sync_health(root, config, tool=args.tool)
     print(f"Project root: {root}")
     print(f"Sync dir: {sync_root} ({'present' if sync_root.exists() else 'missing'})")
     print(f"Git repo: {info['is_git_repo']}")
@@ -183,6 +190,63 @@ def cmd_status(_: argparse.Namespace) -> int:
         if config.git is not None:
             print(f"Sidecar remote: {config.git.remote or '(unset)'}")
             print(f"Sidecar branch: {config.git.branch}")
+    print(f"Latest state: {health.latest_state}")
+    if health.latest_snapshot_id:
+        print(f"Latest snapshot: {health.latest_snapshot_id}")
+    if health.latest_candidates:
+        print(f"Latest candidates: {', '.join(health.latest_candidates)}")
+    if health.sidecar_remote_reachable is not None:
+        print(f"Sidecar remote reachable: {health.sidecar_remote_reachable}")
+    if health.sidecar_remote_branch_exists is not None:
+        print(f"Sidecar remote branch exists: {health.sidecar_remote_branch_exists}")
+    if health.issues:
+        print("Issues:")
+        for issue in health.issues:
+            print(f"- {issue}")
+    return 0
+
+
+def cmd_doctor(args: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    sync_root = root / SYNC_DIR
+    config = load_sync_config(root) if (sync_root / "config.toml").exists() else None
+    health = inspect_sync_health(root, config, tool=args.tool)
+
+    print(f"Project root: {root}")
+    print(f"Tool scope: {args.tool}")
+    print(f"Sync dir present: {health.sync_dir_present}")
+    print(f"Config present: {health.config_present}")
+    print(f"Storage: {health.storage or '(unknown)'}")
+    print(f"Backend: {health.backend_name or '(unknown)'}")
+    print(f"Sidecar remote: {health.sidecar_remote or '(unset)'}")
+    print(f"Sidecar branch: {health.sidecar_branch or '(unset)'}")
+    if health.sidecar_remote_reachable is not None:
+        print(f"Sidecar remote reachable: {health.sidecar_remote_reachable}")
+    if health.sidecar_remote_branch_exists is not None:
+        print(f"Sidecar remote branch exists: {health.sidecar_remote_branch_exists}")
+    print(f"Latest state: {health.latest_state}")
+    if health.latest_path is not None:
+        print(f"Latest path: {health.latest_path}")
+    if health.latest_snapshot_id:
+        print(f"Latest snapshot: {health.latest_snapshot_id}")
+    if health.latest_candidates:
+        print("Latest candidates:")
+        for candidate in health.latest_candidates:
+            print(f"- {candidate}")
+
+    print("Checks:")
+    if health.issues:
+        for issue in health.issues:
+            print(f"- warning: {issue}")
+    else:
+        print("- ok: no sync health issues detected")
+
+    print("Next steps:")
+    if health.next_steps:
+        for step in health.next_steps:
+            print(f"- {step}")
+    else:
+        print("- No immediate action needed.")
     return 0
 
 

@@ -198,6 +198,59 @@ class SyncE2ETest(unittest.TestCase):
 
         return None
 
+    def test_doctor_reports_remote_branch_missing_and_latest_conflict(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            remote = tmp_path / "sync-state.git"
+            project_root = tmp_path / "sample-project"
+
+            self._init_bare_remote(remote)
+            self._init_project(project_root, remote, device_id="sample-macbook")
+
+            doctor_before_push = run_cli(project_root, "doctor", "--tool", "codex")
+            self.assertEqual(doctor_before_push.returncode, 0, doctor_before_push.stderr)
+            self.assertIn("Sidecar remote reachable: True", doctor_before_push.stdout)
+            self.assertIn("Sidecar remote branch exists: False", doctor_before_push.stdout)
+            self.assertIn("warning: sidecar remote branch does not exist yet", doctor_before_push.stdout)
+
+            export = run_cli(
+                project_root,
+                "export",
+                "--tool",
+                "codex",
+                "--goal",
+                "Create the first branch",
+                extra_env={
+                    "AISS_DEVICE_ID": "sample-macbook",
+                    "AISS_FIXED_NOW": "2026-04-25T08:00:00Z",
+                },
+            )
+            self.assertEqual(export.returncode, 0, export.stderr)
+            push = run_cli(project_root, "push", extra_env={"AISS_DEVICE_ID": "sample-macbook"})
+            self.assertEqual(push.returncode, 0, push.stderr)
+
+            latest_path = project_root / ".ai-session-sync" / "latest" / "codex.json"
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "candidates": [
+                            "20260425T080300Z-sample-windows-codex",
+                            "20260425T080000Z-sample-macbook-codex",
+                        ],
+                        "requires_selection": True,
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            doctor_conflict = run_cli(project_root, "doctor", "--tool", "codex")
+            self.assertEqual(doctor_conflict.returncode, 0, doctor_conflict.stderr)
+            self.assertIn("Latest state: conflict", doctor_conflict.stdout)
+            self.assertIn("warning: latest pointer requires selection", doctor_conflict.stdout)
+            self.assertIn("Run `aiss latest resolve --tool codex <snapshot_id>`.", doctor_conflict.stdout)
+
     def _init_bare_remote(self, remote: Path) -> None:
         remote.parent.mkdir(parents=True, exist_ok=True)
         init = run_command(remote.parent, "git", "init", "--bare", remote.name)
