@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__
+from .adapters import Excerpt, extract_claude_context, extract_codex_context
 from .handoff import render_excerpts, render_handoff, render_import_prompt
 from .project import default_project_id, device_id, find_project_root, git_info, run_git
 from .redaction import redact_text
@@ -101,6 +102,16 @@ def cmd_export(args: argparse.Namespace) -> int:
     created_at = now.isoformat()
     snapshot_id = f"{now.strftime('%Y%m%dT%H%M%SZ')}-{device_id()}-{args.tool}"
     info = git_info(root)
+    contexts = _collect_contexts(root, args.tool)
+    excerpts = _collect_excerpts(contexts)
+
+    goal = redact_text(args.goal) if args.goal else _derive_goal(excerpts)
+    notes = _build_notes(args.notes, contexts)
+
+    if not excerpts and goal:
+        excerpts = [Excerpt(role="user", created_at=created_at, text=goal, tool=args.tool)]
+    if not excerpts and notes:
+        excerpts = [Excerpt(role="user", created_at=created_at, text=notes, tool=args.tool)]
 
     patch_rel: str | None = None
     if args.include_patch and info["is_git_repo"] and info["dirty"]:
@@ -114,15 +125,17 @@ def cmd_export(args: argparse.Namespace) -> int:
     handoff_rel = f"handoffs/{snapshot_id}.md"
     excerpts_rel = f"excerpts/{snapshot_id}.jsonl"
     handoff = render_handoff(
-        goal=redact_text(args.goal),
+        goal=goal,
         project=info,
         tool=args.tool,
-        notes=redact_text(args.notes),
+        notes=notes,
         patch_path=patch_rel,
+        contexts=contexts,
+        project_root=root,
     )
-    excerpts = render_excerpts(goal=redact_text(args.goal), notes=redact_text(args.notes), created_at=created_at)
+    excerpt_payload = render_excerpts(excerpts)
     (sync_root / handoff_rel).write_text(handoff, encoding="utf-8")
-    (sync_root / excerpts_rel).write_text(excerpts, encoding="utf-8")
+    (sync_root / excerpts_rel).write_text(excerpt_payload, encoding="utf-8")
 
     manifest = {
         "schema_version": SCHEMA_VERSION,
@@ -141,6 +154,18 @@ def cmd_export(args: argparse.Namespace) -> int:
             "tool_version": "unknown",
             "provider_profile": "local",
             "device_id": device_id(),
+            "contexts": [
+                {
+                    "tool": context.tool,
+                    "source_kind": context.source_kind,
+                    "session_id": context.session_id,
+                    "title": context.title,
+                    "updated_at": context.updated_at,
+                    "transcript_path": context.transcript_path.as_posix() if context.transcript_path else None,
+                    "excerpt_count": context.excerpt_count,
+                }
+                for context in contexts
+            ],
         },
         "artifacts": {
             "handoff": handoff_rel,
@@ -151,7 +176,7 @@ def cmd_export(args: argparse.Namespace) -> int:
         "redaction": {
             "enabled": True,
             "ruleset": "default",
-            "warnings": [],
+            "warnings": [warning for context in contexts for warning in context.warnings],
         },
         "compatibility": {
             "import_strategy": "handoff",
@@ -223,3 +248,40 @@ def resolve_manifest(sync_root: Path, tool: str, snapshot: str) -> Path:
     if manifest_path.exists():
         return manifest_path
     raise SystemExit(f"Snapshot not found: {snapshot}")
+
+
+def _collect_contexts(root: Path, tool: str) -> list:
+    contexts = []
+    if tool in {"all", "codex"}:
+        context = extract_codex_context(root)
+        if context is not None:
+            contexts.append(context)
+    if tool in {"all", "claude"}:
+        context = extract_claude_context(root)
+        if context is not None:
+            contexts.append(context)
+    return sorted(contexts, key=lambda context: context.updated_at or "")
+
+
+def _collect_excerpts(contexts: list) -> list[Excerpt]:
+    excerpts: list[Excerpt] = []
+    for context in contexts:
+        excerpts.extend(context.excerpts)
+    return sorted(excerpts, key=lambda excerpt: excerpt.created_at)
+
+
+def _derive_goal(excerpts: list[Excerpt]) -> str:
+    for excerpt in reversed(excerpts):
+        if excerpt.role == "user" and excerpt.text:
+            return excerpt.text
+    return ""
+
+
+def _build_notes(raw_notes: str, contexts: list) -> str:
+    parts = []
+    stripped = redact_text(raw_notes).strip()
+    if stripped:
+        parts.append(stripped)
+    if not contexts:
+        parts.append("No matching local Codex or Claude transcript was found for this project on the current machine.")
+    return "\n\n".join(parts)
