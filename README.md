@@ -91,6 +91,14 @@ The project should default to:
 - sidecar storage for sensitive work;
 - encryption before remote sync.
 
+## Public Repo Defaults
+
+This repository is intended to remain public, so live `.ai-session-sync/` runtime state is ignored by default.
+
+- Do not commit real `manifests/`, `handoffs/`, `excerpts/`, `patches/`, or `latest/` files from active machines.
+- Keep real sync state in a private sidecar repo or another private backend.
+- Put public examples under [`docs/examples/public-sync-state/`](docs/examples/public-sync-state/README.md) using synthetic or fully redacted data only.
+
 ## License
 
 MIT.

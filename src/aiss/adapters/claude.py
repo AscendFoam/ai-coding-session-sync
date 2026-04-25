@@ -7,26 +7,44 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .base import Excerpt, ExtractedContext, clean_text, normalize_project_text, path_within_project
+from .base import (
+    Excerpt,
+    ExtractedContext,
+    clean_text,
+    context_sort_key,
+    enrich_context,
+    normalize_project_text,
+    path_match_rank,
+)
 from ..redaction import redact_text
 
 
 def extract_claude_context(project_root: Path, *, max_messages: int = 10) -> ExtractedContext | None:
+    candidates = collect_claude_contexts(project_root, max_messages=max_messages)
+    return candidates[0] if candidates else None
+
+
+def collect_claude_contexts(project_root: Path, *, max_messages: int = 10, limit: int = 5) -> list[ExtractedContext]:
     claude_home = _resolve_claude_home()
     projects_root = claude_home / "projects"
+    contexts: list[ExtractedContext] = []
     if projects_root.exists():
-        candidates = sorted(
+        transcript_paths = sorted(
             [path for path in projects_root.rglob("*.jsonl") if path.is_file()],
             key=lambda path: path.stat().st_mtime,
             reverse=True,
         )
-        for transcript_path in candidates:
+        for transcript_path in transcript_paths:
             context = _parse_candidate(transcript_path, project_root, max_messages=max_messages)
             if context is not None:
-                return context
+                contexts.append(context)
 
     history_path = claude_home / "history.jsonl"
-    return _extract_from_history(history_path, project_root, max_messages=max_messages)
+    history_context = _extract_from_history(history_path, project_root, max_messages=max_messages)
+    if history_context is not None:
+        contexts.append(history_context)
+    contexts.sort(key=lambda context: (context.score, *context_sort_key(context)), reverse=True)
+    return contexts[:limit]
 
 
 def _resolve_claude_home() -> Path:
@@ -79,12 +97,11 @@ def _parse_candidate(transcript_path: Path, project_root: Path, *, max_messages:
                 )
             )
 
-    if not path_within_project(cwd, project_root):
+    if path_match_rank(cwd, project_root) == 0:
         return None
     if not excerpts:
         return None
-    excerpts = excerpts[-max_messages:]
-    return ExtractedContext(
+    context = ExtractedContext(
         tool="claude",
         source_kind="transcript",
         session_id=session_id,
@@ -94,6 +111,7 @@ def _parse_candidate(transcript_path: Path, project_root: Path, *, max_messages:
         updated_at=updated_at,
         excerpts=excerpts,
     )
+    return enrich_context(context, project_root, max_messages=max_messages)
 
 
 def _extract_from_history(history_path: Path, project_root: Path, *, max_messages: int) -> ExtractedContext | None:
@@ -111,7 +129,7 @@ def _extract_from_history(history_path: Path, project_root: Path, *, max_message
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if not path_within_project(_string(record.get("project")), project_root):
+            if path_match_rank(_string(record.get("project")), project_root) == 0:
                 continue
             text = _string(record.get("display")) or ""
             text = _filter_claude_text(text)
@@ -131,8 +149,7 @@ def _extract_from_history(history_path: Path, project_root: Path, *, max_message
 
     if not excerpts:
         return None
-    excerpts = excerpts[-max_messages:]
-    return ExtractedContext(
+    context = ExtractedContext(
         tool="claude",
         source_kind="history",
         session_id=None,
@@ -142,6 +159,7 @@ def _extract_from_history(history_path: Path, project_root: Path, *, max_message
         updated_at=updated_at,
         excerpts=excerpts,
     )
+    return enrich_context(context, project_root, max_messages=max_messages)
 
 
 def _extract_message_text(role: str, blocks: object) -> str:

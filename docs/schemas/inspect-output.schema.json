@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-coding-session-sync.local/schemas/inspect-output.schema.json",
+  "title": "AI Coding Session Sync Inspect Output",
+  "description": "Draft schema for `aiss inspect --json` output.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "codex": {
+      "$ref": "#/$defs/contextList"
+    },
+    "claude": {
+      "$ref": "#/$defs/contextList"
+    }
+  },
+  "$defs": {
+    "contextList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/context"
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "source_kind",
+        "session_id",
+        "title",
+        "updated_at",
+        "cwd",
+        "transcript_path",
+        "score",
+        "score_reasons",
+        "goal_candidate",
+        "excerpt_count",
+        "total_excerpt_count",
+        "total_user_count",
+        "total_assistant_count",
+        "all_excerpts",
+        "excerpts"
+      ],
+      "properties": {
+        "tool": {
+          "$ref": "#/$defs/tool"
+        },
+        "source_kind": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "cwd": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transcript_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "score": {
+          "type": "integer"
+        },
+        "score_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "goal_candidate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_user_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_assistant_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "all_excerpts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/allExcerpt"
+          }
+        },
+        "excerpts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/selectedExcerpt"
+          }
+        }
+      }
+    },
+    "allExcerpt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "created_at",
+        "text",
+        "selected",
+        "selected_index"
+      ],
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/role"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "text": {
+          "type": "string"
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "selected_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    },
+    "selectedExcerpt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "created_at",
+        "text",
+        "selected_index",
+        "all_excerpt_index"
+      ],
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/role"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "text": {
+          "type": "string"
+        },
+        "selected_index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "all_excerpt_index": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "tool": {
+      "type": "string",
+      "enum": [
+        "codex",
+        "claude"
+      ]
+    }
+  }
+}

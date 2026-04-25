@@ -10,10 +10,11 @@ dist/
 build/
 *.egg-info/
 
+# Public repo default: ignore live sync state
+.ai-session-sync/**
+!.ai-session-sync/README.md
+
 # Local sync state and secrets
-.ai-session-sync/local.toml
-.ai-session-sync/tmp/
-.ai-session-sync/locks/
 .env
 .env.*
 *.pem

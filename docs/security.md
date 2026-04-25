@@ -49,6 +49,13 @@ Public repo: avoid raw excerpts; use sidecar repo and encryption.
 Sensitive work: use sidecar repo plus encryption.
 ```
 
+For this repository itself, the public-repo default should be stricter:
+
+- ignore live `.ai-session-sync/` runtime files in Git;
+- keep only policy or placeholder files under `.ai-session-sync/`;
+- store real sync state in a private sidecar repo or private backend;
+- keep any checked-in examples under `docs/examples/public-sync-state/` with synthetic or fully redacted content.
+
 ## Native Mode
 
 Native transcript sync is higher risk than handoff sync. It can include full conversation history and unfiltered tool output. It should remain opt-in, clearly labeled as experimental, and strongly paired with encryption.

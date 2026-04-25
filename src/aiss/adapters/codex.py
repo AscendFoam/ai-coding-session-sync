@@ -6,28 +6,43 @@ import json
 import os
 from pathlib import Path
 
-from .base import Excerpt, ExtractedContext, clean_text, normalize_project_text, path_within_project
+from .base import (
+    Excerpt,
+    ExtractedContext,
+    clean_text,
+    context_sort_key,
+    enrich_context,
+    normalize_project_text,
+    path_match_rank,
+)
 from ..redaction import redact_text
 
 
 def extract_codex_context(project_root: Path, *, max_messages: int = 10) -> ExtractedContext | None:
+    candidates = collect_codex_contexts(project_root, max_messages=max_messages)
+    return candidates[0] if candidates else None
+
+
+def collect_codex_contexts(project_root: Path, *, max_messages: int = 10, limit: int = 5) -> list[ExtractedContext]:
     codex_home = _resolve_codex_home()
     sessions_root = codex_home / "sessions"
     if not sessions_root.exists():
-        return None
+        return []
 
     titles = _load_session_titles(codex_home / "session_index.jsonl")
-    candidates = sorted(
+    transcript_paths = sorted(
         [path for path in sessions_root.rglob("*.jsonl") if path.is_file()],
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
 
-    for transcript_path in candidates:
+    contexts: list[ExtractedContext] = []
+    for transcript_path in transcript_paths:
         context = _parse_candidate(transcript_path, project_root, titles, max_messages=max_messages)
         if context is not None:
-            return context
-    return None
+            contexts.append(context)
+    contexts.sort(key=lambda context: (context.score, *context_sort_key(context)), reverse=True)
+    return contexts[:limit]
 
 
 def _resolve_codex_home() -> Path:
@@ -111,12 +126,11 @@ def _parse_candidate(
             )
             updated_at = _string(record.get("timestamp")) or updated_at
 
-    if not path_within_project(cwd, project_root):
+    if path_match_rank(cwd, project_root) == 0:
         return None
     if not excerpts:
         return None
-    excerpts = excerpts[-max_messages:]
-    return ExtractedContext(
+    context = ExtractedContext(
         tool="codex",
         source_kind="transcript",
         session_id=session_id,
@@ -126,6 +140,7 @@ def _parse_candidate(
         updated_at=updated_at,
         excerpts=excerpts,
     )
+    return enrich_context(context, project_root, max_messages=max_messages)
 
 
 def _extract_message_text(role: str, blocks: object) -> str:

@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-coding-session-sync.local/schemas/manifest.schema.json",
+  "title": "AI Coding Session Sync Manifest",
+  "description": "Draft schema for one exported snapshot manifest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "created_at",
+    "project",
+    "source",
+    "artifacts",
+    "redaction",
+    "compatibility"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Protocol schema version for the snapshot manifest.",
+      "examples": [
+        "0.1.0"
+      ]
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Immutable snapshot identifier.",
+      "pattern": "^[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9._-]+-(all|codex|claude)$",
+      "examples": [
+        "20260423T151230Z-macbook-pro-codex"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Snapshot creation timestamp."
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "artifacts": {
+      "$ref": "#/$defs/artifacts"
+    },
+    "redaction": {
+      "$ref": "#/$defs/redaction"
+    },
+    "compatibility": {
+      "$ref": "#/$defs/compatibility"
+    }
+  },
+  "$defs": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "root_hint",
+        "git_remote",
+        "branch",
+        "head",
+        "dirty"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "root_hint": {
+          "type": "string"
+        },
+        "git_remote": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "head": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "tool_version",
+        "provider_profile",
+        "device_id",
+        "contexts"
+      ],
+      "properties": {
+        "tool": {
+          "$ref": "#/$defs/tool"
+        },
+        "tool_version": {
+          "type": "string"
+        },
+        "provider_profile": {
+          "type": "string"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceContext"
+          }
+        }
+      }
+    },
+    "sourceContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "source_kind",
+        "session_id",
+        "title",
+        "updated_at",
+        "transcript_path",
+        "excerpt_count",
+        "total_excerpt_count",
+        "total_user_count",
+        "total_assistant_count",
+        "score",
+        "score_reasons",
+        "goal_candidate"
+      ],
+      "properties": {
+        "tool": {
+          "$ref": "#/$defs/tool"
+        },
+        "source_kind": {
+          "type": "string",
+          "description": "Adapter-defined source type, for example transcript."
+        },
+        "session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "transcript_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_user_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_assistant_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "score": {
+          "type": "integer"
+        },
+        "score_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "goal_candidate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handoff",
+        "recent_turns",
+        "patch",
+        "native"
+      ],
+      "properties": {
+        "handoff": {
+          "type": "string"
+        },
+        "recent_turns": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "patch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "native": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "ruleset",
+        "warnings"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ruleset": {
+          "type": "string"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "import_strategy",
+        "native_resume_supported"
+      ],
+      "properties": {
+        "import_strategy": {
+          "type": "string"
+        },
+        "native_resume_supported": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "tool": {
+      "type": "string",
+      "enum": [
+        "all",
+        "codex",
+        "claude"
+      ]
+    }
+  }
+}

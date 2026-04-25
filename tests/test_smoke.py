@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tests.schema_utils import assert_matches_schema, load_schema
+
 
 def run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
@@ -24,6 +26,10 @@ def run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 class CliSmokeTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.latest_pointer_schema = load_schema("latest-pointer.schema.json")
+        self.manifest_schema = load_schema("manifest.schema.json")
+
     def test_init_export_import_prompt(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -35,7 +41,11 @@ class CliSmokeTest(unittest.TestCase):
             self.assertEqual(export.returncode, 0, export.stderr)
             latest = tmp_path / ".ai-session-sync" / "latest" / "codex.json"
             latest_data = json.loads(latest.read_text(encoding="utf-8"))
+            assert_matches_schema(latest_data, self.latest_pointer_schema)
             self.assertTrue(latest_data["snapshot_id"])
+            manifest_path = tmp_path / ".ai-session-sync" / latest_data["manifest"]
+            manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
+            assert_matches_schema(manifest_data, self.manifest_schema)
 
             imported = run_cli(tmp_path, "import", "--tool", "codex", "--print-prompt")
             self.assertEqual(imported.returncode, 0, imported.stderr)
