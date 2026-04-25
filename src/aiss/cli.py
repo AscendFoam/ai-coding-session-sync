@@ -112,6 +112,18 @@ def build_parser() -> argparse.ArgumentParser:
     sync_parser.add_argument("--include-patch", action="store_true", help="Export git diff as a patch when available.")
     sync_parser.set_defaults(func=cmd_sync)
 
+    latest_parser = subcommands.add_parser("latest", help="Inspect or resolve latest snapshot pointers.")
+    latest_subcommands = latest_parser.add_subparsers(dest="latest_command", required=True)
+
+    latest_show_parser = latest_subcommands.add_parser("show", help="Show the current latest pointer for a tool.")
+    latest_show_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
+    latest_show_parser.set_defaults(func=cmd_latest_show)
+
+    latest_resolve_parser = latest_subcommands.add_parser("resolve", help="Resolve a conflicting latest pointer.")
+    latest_resolve_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
+    latest_resolve_parser.add_argument("snapshot", help="Snapshot id to promote as the resolved latest pointer.")
+    latest_resolve_parser.set_defaults(func=cmd_latest_resolve)
+
     return parser
 
 
@@ -391,6 +403,56 @@ def cmd_sync(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_latest_show(args: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    ensure_initialized(root)
+    payload = load_latest_pointer(root / SYNC_DIR, args.tool)
+    if "snapshot_id" in payload:
+        print(f"Tool: {args.tool}")
+        print(f"Latest snapshot: {payload['snapshot_id']}")
+        print(f"Manifest: {payload['manifest']}")
+        return 0
+
+    candidates = payload.get("candidates", [])
+    print(f"Tool: {args.tool}")
+    print("Latest pointer requires selection.")
+    print("Candidates:")
+    for candidate in candidates:
+        print(f"- {candidate}")
+    print(f"Resolve with: aiss latest resolve --tool {args.tool} <snapshot_id>")
+    return 0
+
+
+def cmd_latest_resolve(args: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    ensure_initialized(root)
+    sync_root = root / SYNC_DIR
+    payload = load_latest_pointer(sync_root, args.tool)
+    if not payload.get("requires_selection"):
+        raise SystemExit(f"Latest pointer for tool '{args.tool}' does not require selection.")
+
+    snapshot = args.snapshot
+    candidates = [candidate for candidate in payload.get("candidates", []) if isinstance(candidate, str)]
+    if snapshot not in candidates:
+        raise SystemExit(
+            f"Snapshot '{snapshot}' is not one of the current latest candidates: {', '.join(candidates)}"
+        )
+
+    manifest_path = sync_root / "manifests" / f"{snapshot}.json"
+    if not manifest_path.exists():
+        raise SystemExit(f"Snapshot manifest not found: {manifest_path}")
+
+    latest_path = latest_pointer_path(sync_root, args.tool)
+    latest_path.parent.mkdir(parents=True, exist_ok=True)
+    latest_path.write_text(
+        json.dumps({"snapshot_id": snapshot, "manifest": f"manifests/{snapshot}.json"}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(f"Resolved latest pointer for {args.tool}: {snapshot}")
+    print(f"Wrote: {latest_path}")
+    return 0
+
+
 def ensure_initialized(root: Path) -> None:
     sync_root = root / SYNC_DIR
     if not (sync_root / "config.toml").exists():
@@ -407,17 +469,14 @@ def ensure_initialized(root: Path) -> None:
 
 def resolve_manifest(sync_root: Path, tool: str, snapshot: str) -> Path:
     if snapshot == "latest":
-        latest_path = sync_root / "latest" / f"{tool}.json"
-        if not latest_path.exists() and tool != "all":
-            latest_path = sync_root / "latest" / "all.json"
-        if not latest_path.exists():
-            raise SystemExit(f"No latest snapshot found for tool '{tool}'.")
-        latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        latest_path = latest_pointer_path(sync_root, tool)
+        latest = load_latest_pointer(sync_root, tool)
         if latest.get("requires_selection"):
             candidates = latest.get("candidates", [])
             raise SystemExit(
                 "Latest snapshot requires selection. Specify one of: "
                 + ", ".join(candidate for candidate in candidates if isinstance(candidate, str))
+                + f". Or run: aiss latest resolve --tool {tool} <snapshot_id>"
             )
         return sync_root / latest["manifest"]
 
@@ -585,3 +644,20 @@ def _current_utc() -> datetime:
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def latest_pointer_path(sync_root: Path, tool: str) -> Path:
+    latest_path = sync_root / "latest" / f"{tool}.json"
+    if latest_path.exists() or tool == "all":
+        return latest_path
+    fallback = sync_root / "latest" / "all.json"
+    if fallback.exists():
+        return fallback
+    return latest_path
+
+
+def load_latest_pointer(sync_root: Path, tool: str) -> dict[str, object]:
+    latest_path = latest_pointer_path(sync_root, tool)
+    if not latest_path.exists():
+        raise SystemExit(f"No latest snapshot found for tool '{tool}'.")
+    return json.loads(latest_path.read_text(encoding="utf-8"))

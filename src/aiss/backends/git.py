@@ -41,8 +41,8 @@ def pull_git_sidecar(project_root: Path, config: GitBackendConfig) -> GitSyncRes
                 remote_has_branch=False,
             )
 
-        copied_files = _copy_sync_dirs(prepared.repo_path, sync_root, include_latest=False)
         latest_files = _merge_latest_dirs(sync_root / "latest", prepared.repo_path / "latest", sync_root / "latest")
+        copied_files = _copy_sync_dirs(prepared.repo_path, sync_root, include_latest=False)
         return GitSyncResult(
             remote=config.remote,
             branch=config.branch,
@@ -57,8 +57,8 @@ def pull_git_sidecar(project_root: Path, config: GitBackendConfig) -> GitSyncRes
 def push_git_sidecar(project_root: Path, config: GitBackendConfig) -> GitSyncResult:
     sync_root = project_root / SYNC_DIR
     with _prepared_repo(sync_root, config) as prepared:
-        copied_files = _copy_sync_dirs(sync_root, prepared.repo_path, include_latest=False)
         latest_files = _merge_latest_dirs(prepared.repo_path / "latest", sync_root / "latest", prepared.repo_path / "latest")
+        copied_files = _copy_sync_dirs(sync_root, prepared.repo_path, include_latest=False)
         commit_created = False
         commit_id = None
 
@@ -184,7 +184,7 @@ def _merge_latest_dirs(primary_dir: Path, secondary_dir: Path, target_dir: Path)
         )
         if merged is None:
             continue
-        content = json.dumps(merged, indent=2) + "\n"
+        content = json.dumps(_public_latest_payload(merged), indent=2) + "\n"
         target_path = target_dir / name
         target_path.parent.mkdir(parents=True, exist_ok=True)
         if not target_path.exists() or target_path.read_text(encoding="utf-8") != content:
@@ -194,25 +194,54 @@ def _merge_latest_dirs(primary_dir: Path, secondary_dir: Path, target_dir: Path)
 
 
 def _merge_latest_payload(primary: dict[str, object] | None, secondary: dict[str, object] | None) -> dict[str, object] | None:
+    primary_root = _payload_sync_root(primary)
+    secondary_root = _payload_sync_root(secondary)
+    primary_public = _public_latest_payload(primary)
+    secondary_public = _public_latest_payload(secondary)
+
+    primary = primary_public
+    secondary = secondary_public
     if primary is None:
-        return secondary
+        return _attach_sync_root(secondary, secondary_root)
     if secondary is None:
-        return primary
+        return _attach_sync_root(primary, primary_root)
     if primary == secondary:
-        return primary
+        return _attach_sync_root(primary, primary_root or secondary_root)
 
     primary_candidates = _pointer_candidates(primary)
     secondary_candidates = _pointer_candidates(secondary)
+    if _is_conflict_pointer(primary) and _is_conflict_pointer(secondary):
+        return {
+            "candidates": sorted(set(primary_candidates + secondary_candidates), reverse=True),
+            "requires_selection": True,
+        }
+
+    resolved = _resolve_conflict_against_pointer(primary, secondary, primary_root, secondary_root)
+    if resolved is not None:
+        return resolved
+    resolved = _resolve_conflict_against_pointer(secondary, primary, secondary_root, primary_root)
+    if resolved is not None:
+        return resolved
+
     if _is_conflict_pointer(primary) or _is_conflict_pointer(secondary):
         return {
             "candidates": sorted(set(primary_candidates + secondary_candidates), reverse=True),
             "requires_selection": True,
         }
 
-    winner = max(primary_candidates + secondary_candidates)
+    primary_snapshot = primary_candidates[0] if primary_candidates else None
+    secondary_snapshot = secondary_candidates[0] if secondary_candidates else None
+    if primary_snapshot and secondary_snapshot:
+        primary_knows_secondary = _snapshot_exists(primary_root, secondary_snapshot)
+        secondary_knows_primary = _snapshot_exists(secondary_root, primary_snapshot)
+        if secondary_knows_primary and not primary_knows_secondary:
+            return _snapshot_pointer(secondary_snapshot)
+        if primary_knows_secondary and not secondary_knows_primary:
+            return _snapshot_pointer(primary_snapshot)
+
     return {
-        "snapshot_id": winner,
-        "manifest": f"manifests/{winner}.json",
+        "candidates": sorted(set(primary_candidates + secondary_candidates), reverse=True),
+        "requires_selection": True,
     }
 
 
@@ -230,10 +259,71 @@ def _is_conflict_pointer(payload: dict[str, object]) -> bool:
     return bool(payload.get("requires_selection"))
 
 
+def _resolve_conflict_against_pointer(
+    conflict_payload: dict[str, object],
+    normal_payload: dict[str, object],
+    conflict_root: Path | None,
+    normal_root: Path | None,
+) -> dict[str, object] | None:
+    if not _is_conflict_pointer(conflict_payload) or _is_conflict_pointer(normal_payload):
+        return None
+
+    normal_candidates = _pointer_candidates(normal_payload)
+    if len(normal_candidates) != 1:
+        return None
+
+    selected_snapshot = normal_candidates[0]
+    conflict_candidates = _pointer_candidates(conflict_payload)
+    if selected_snapshot not in conflict_candidates:
+        return None
+
+    if normal_root is not None and all(_snapshot_exists(normal_root, candidate) for candidate in conflict_candidates):
+        return _snapshot_pointer(selected_snapshot)
+    return None
+
+
+def _snapshot_exists(sync_root: Path | None, snapshot_id: str) -> bool:
+    if sync_root is None:
+        return False
+    return (sync_root / "manifests" / f"{snapshot_id}.json").exists()
+
+
+def _snapshot_pointer(snapshot_id: str) -> dict[str, object]:
+    return {
+        "snapshot_id": snapshot_id,
+        "manifest": f"manifests/{snapshot_id}.json",
+    }
+
+
+def _payload_sync_root(payload: dict[str, object] | None) -> Path | None:
+    if payload is None:
+        return None
+    path = payload.get("_sync_root")
+    if isinstance(path, Path):
+        return path
+    return None
+
+
+def _public_latest_payload(payload: dict[str, object] | None) -> dict[str, object] | None:
+    if payload is None:
+        return None
+    return {key: value for key, value in payload.items() if not key.startswith("_")}
+
+
+def _attach_sync_root(payload: dict[str, object], sync_root: Path | None) -> dict[str, object]:
+    if sync_root is None:
+        return dict(payload)
+    merged = dict(payload)
+    merged["_sync_root"] = sync_root
+    return merged
+
+
 def _read_json_if_exists(path: Path) -> dict[str, object] | None:
     if not path.exists():
         return None
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["_sync_root"] = path.parent.parent
+    return payload
 
 
 def _require_git_ok(result: tuple[int, str, str], message: str) -> None:
