@@ -33,7 +33,10 @@ If test-only fixtures are needed later, prefer `tests/fixtures/` over `.ai-sessi
 - `sample-manifest-dirty.json`
 - `sample-inspect-output-dirty.json`
 - `sample-ui-bundle.json`
+- `sample-ui-bundle-dirty.json`
 
 These files are intentionally public-safe, schema-shaped, and stable enough for early Web UI development.
 
 `sample-ui-bundle.json` intentionally duplicates the clean `latest` + `manifest` + `inspect` + `handoff` sample set into one payload so a prototype page can boot from a single request.
+
+`sample-ui-bundle-dirty.json` does the same for caution-state UI work, including a dirty worktree, patch artifact, warning list, and multiple ranked source contexts.

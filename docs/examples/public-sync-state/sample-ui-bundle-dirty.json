@@ -1,0 +1,254 @@
+{
+  "schema_version": "0.1.0",
+  "bundle_id": "sample-ui-bundle-dirty",
+  "generated_at": "2026-04-25T08:16:00+00:00",
+  "entry": {
+    "project_id": "sample-project",
+    "active_tool": "claude",
+    "available_tools": [
+      "claude"
+    ],
+    "snapshot_id": "20260425T081500Z-sample-windows-claude",
+    "handoff_path": "handoffs/20260425T081500Z-sample-windows-claude.md"
+  },
+  "latest": {
+    "snapshot_id": "20260425T081500Z-sample-windows-claude",
+    "manifest": "manifests/20260425T081500Z-sample-windows-claude.json"
+  },
+  "manifest": {
+    "schema_version": "0.1.0",
+    "snapshot_id": "20260425T081500Z-sample-windows-claude",
+    "created_at": "2026-04-25T08:15:00+00:00",
+    "project": {
+      "id": "sample-project",
+      "root_hint": ".",
+      "git_remote": "https://example.com/org/sample-project.git",
+      "branch": "feature/inspect-ui",
+      "head": "def5678",
+      "dirty": true
+    },
+    "source": {
+      "tool": "claude",
+      "tool_version": "unknown",
+      "provider_profile": "local",
+      "device_id": "sample-windows",
+      "contexts": [
+        {
+          "tool": "claude",
+          "source_kind": "transcript",
+          "session_id": "session-sample-claude-002",
+          "title": "Refine compare fixture coverage",
+          "updated_at": "2026-04-25T08:13:10Z",
+          "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-compare.jsonl",
+          "excerpt_count": 5,
+          "total_excerpt_count": 11,
+          "total_user_count": 2,
+          "total_assistant_count": 9,
+          "score": 251,
+          "score_reasons": [
+            "cwd exactly matches project root",
+            "2 user excerpt(s)",
+            "9 assistant excerpt(s)",
+            "goal candidate available",
+            "title available",
+            "updated timestamp available"
+          ],
+          "goal_candidate": "Cover dirty, patch, and warning states in the Web UI."
+        },
+        {
+          "tool": "claude",
+          "source_kind": "transcript",
+          "session_id": "session-sample-claude-003",
+          "title": "Validate manifest contract",
+          "updated_at": "2026-04-25T08:11:40Z",
+          "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-manifest.jsonl",
+          "excerpt_count": 3,
+          "total_excerpt_count": 6,
+          "total_user_count": 1,
+          "total_assistant_count": 5,
+          "score": 219,
+          "score_reasons": [
+            "cwd exactly matches project root",
+            "1 user excerpt(s)",
+            "5 assistant excerpt(s)",
+            "goal candidate available",
+            "title available",
+            "updated timestamp available"
+          ],
+          "goal_candidate": "Make the manifest fixture show dirty worktree and patch state."
+        }
+      ]
+    },
+    "artifacts": {
+      "handoff": "handoffs/20260425T081500Z-sample-windows-claude.md",
+      "recent_turns": "excerpts/20260425T081500Z-sample-windows-claude.jsonl",
+      "patch": "patches/20260425T081500Z-sample-windows-claude.patch",
+      "native": []
+    },
+    "redaction": {
+      "enabled": true,
+      "ruleset": "default",
+      "warnings": [
+        "contains dirty worktree state",
+        "contains patch artifact reference",
+        "contains multiple ranked contexts"
+      ]
+    },
+    "compatibility": {
+      "import_strategy": "handoff",
+      "native_resume_supported": "unknown"
+    }
+  },
+  "inspect": {
+    "claude": [
+      {
+        "tool": "claude",
+        "source_kind": "transcript",
+        "session_id": "session-sample-claude-002",
+        "title": "Refine compare fixture coverage",
+        "updated_at": "2026-04-25T08:13:10Z",
+        "cwd": "${PROJECT_ROOT}",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-compare.jsonl",
+        "score": 251,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "9 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Cover dirty, patch, and warning states in the Web UI.",
+        "excerpt_count": 5,
+        "total_excerpt_count": 11,
+        "total_user_count": 2,
+        "total_assistant_count": 9,
+        "all_excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:06:00Z",
+            "text": "Add a dirty-worktree example.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:06:20Z",
+            "text": "I will add patch and warning states too.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:07:05Z",
+            "text": "Cover dirty, patch, and warning states in the Web UI.",
+            "selected": true,
+            "selected_index": 1
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:20Z",
+            "text": "I will create a dirty manifest and a patch reference.",
+            "selected": true,
+            "selected_index": 2
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:44Z",
+            "text": "I will also include redaction warnings for the UI.",
+            "selected": true,
+            "selected_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:08:10Z",
+            "text": "I will keep the sample safe and synthetic.",
+            "selected": true,
+            "selected_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:09:02Z",
+            "text": "I will add a second ranked context as well.",
+            "selected": true,
+            "selected_index": 5
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:10:15Z",
+            "text": "The dirty state fixture is nearly done.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:11:05Z",
+            "text": "The patch artifact is now represented in the manifest.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:12:25Z",
+            "text": "The warning list will help the UI show caution states.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:13:10Z",
+            "text": "I am validating the dirty sample against the schema.",
+            "selected": false,
+            "selected_index": null
+          }
+        ],
+        "excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:07:05Z",
+            "text": "Cover dirty, patch, and warning states in the Web UI.",
+            "selected_index": 1,
+            "all_excerpt_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:20Z",
+            "text": "I will create a dirty manifest and a patch reference.",
+            "selected_index": 2,
+            "all_excerpt_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:44Z",
+            "text": "I will also include redaction warnings for the UI.",
+            "selected_index": 3,
+            "all_excerpt_index": 5
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:08:10Z",
+            "text": "I will keep the sample safe and synthetic.",
+            "selected_index": 4,
+            "all_excerpt_index": 6
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:09:02Z",
+            "text": "I will add a second ranked context as well.",
+            "selected_index": 5,
+            "all_excerpt_index": 7
+          }
+        ]
+      }
+    ]
+  },
+  "handoff": {
+    "path": "handoffs/20260425T081500Z-sample-windows-claude.md",
+    "format": "markdown",
+    "title": "Session Handoff",
+    "updated_at": "2026-04-25T08:15:00+00:00",
+    "current_goal": "Cover dirty, patch, and warning states in the Web UI.",
+    "summary": "Claude snapshot focused on caution-state UI: dirty worktree, patch availability, redaction warnings, and multiple ranked transcript candidates.",
+    "markdown": "# Session Handoff\n\n## Current Goal\n\nCover dirty, patch, and warning states in the Web UI.\n\n## Project State\n\n- Tool: claude\n- Repository: https://example.com/org/sample-project.git\n- Branch: feature/inspect-ui\n- HEAD: def5678\n- Dirty worktree: True\n- Patch: patches/20260425T081500Z-sample-windows-claude.patch\n\n## Completed Work\n\n- Added a dirty snapshot example with a patch artifact reference.\n- Added redaction warnings to exercise caution-state UI.\n- Added multiple ranked source contexts so the UI can show provenance competition.\n\n## Recent Context Summary\n\n- Latest selected user request: Cover dirty, patch, and warning states in the Web UI.\n- Latest selected assistant update: I am validating the dirty sample against the schema.\n\n## Important Decisions\n\n- Keep the dirty example synthetic even though it models a riskier project state.\n- Preserve the same compare index contract as the clean sample.\n- Surface warnings in both manifest metadata and the handoff summary.\n\n## Relevant Files\n\n- `docs/examples/public-sync-state/sample-manifest-dirty.json`: dirty manifest fixture.\n- `docs/examples/public-sync-state/sample-inspect-output-dirty.json`: dirty inspect fixture.\n- `docs/examples/public-sync-state/sample-ui-bundle-dirty.json`: single-file dirty UI bootstrap payload.\n- `tests/test_schema_contracts.py`: contract tests for clean and dirty bundles.\n\n## Open Questions\n\n- Should the UI show warnings inline in the header or only in a dedicated panel?\n- Should a patch preview be collapsed by default for risky states?\n- Should multiple ranked contexts be rendered as tabs, a list, or a compare drawer?\n\n## Next Steps\n\n1. Boot the caution-state prototype directly from `sample-ui-bundle-dirty.json`.\n2. Render the dirty badge and patch indicator from the manifest section.\n3. Render warning chips or banners from `redaction.warnings`.\n4. Show ranked contexts next to the selected compare timeline.\n\n## Constraints\n\n- Do not treat synthetic warnings as real security findings.\n- Do not require the UI to load a second file before it can render the dirty state.\n- Do not infer ranking by title; use the provided score and score reasons.\n\n## Verification\n\n- Embedded manifest matches the manifest schema.\n- Embedded inspect output matches the inspect schema.\n- Compare indexes remain consistent across `all_excerpts` and `excerpts`.\n"
+  }
+}

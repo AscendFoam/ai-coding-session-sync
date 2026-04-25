@@ -5,6 +5,7 @@ This page explains how to map the public fixture set into a first-pass Web UI.
 ## Fixture Set
 
 - `sample-ui-bundle.json`
+- `sample-ui-bundle-dirty.json`
 - `sample-latest-pointer.json`
 - `sample-latest-conflict.json`
 - `sample-manifest.json`
@@ -18,6 +19,7 @@ These files are synthetic, public-safe, and intended for early UI work before a 
 For a single-request prototype, start with:
 
 - `sample-ui-bundle.json`
+- `sample-ui-bundle-dirty.json`
 
 It already inlines:
 
@@ -155,6 +157,7 @@ Primary input:
 
 - `sample-manifest-dirty.json`
 - `sample-inspect-output-dirty.json`
+- `sample-ui-bundle-dirty.json`
 
 Use this variant to test caution states:
 
@@ -171,6 +174,14 @@ Suggested UI behavior:
 - render multiple contexts as stacked candidates with score and reasoning;
 - keep compare timeline behavior identical to the clean sample so the view logic stays consistent.
 
+When you want those states in one request instead of three separate files, use `sample-ui-bundle-dirty.json` and map:
+
+- `manifest.project.dirty`
+- `manifest.artifacts.patch`
+- `manifest.redaction.warnings`
+- `manifest.source.contexts`
+- `inspect.claude[0]`
+
 ## Minimal UI Build Order
 
 1. Load `sample-ui-bundle.json`
@@ -179,7 +190,8 @@ Suggested UI behavior:
 4. Render handoff pane from `handoff.markdown`
 5. Render compare timeline from `inspect`
 6. Add conflict-state handling using `sample-latest-conflict.json`
-7. Add dirty / warning handling using `sample-manifest-dirty.json` and `sample-inspect-output-dirty.json`
+7. Add dirty / warning handling using `sample-ui-bundle-dirty.json`
+8. Keep `sample-manifest-dirty.json` and `sample-inspect-output-dirty.json` for isolated state testing
 
 ## Practical Notes
 

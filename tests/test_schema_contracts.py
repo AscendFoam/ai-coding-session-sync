@@ -38,6 +38,38 @@ class SchemaContractTest(unittest.TestCase):
                     [index for index, entry in enumerate(all_excerpts, start=1) if entry["selected"]],
                 )
 
+    def _assert_ui_bundle_contracts(self, payload: dict[str, object]) -> None:
+        assert_matches_schema(payload, self.ui_bundle_schema)
+        assert_matches_schema(payload["latest"], self.latest_pointer_schema)
+        assert_matches_schema(payload["manifest"], self.manifest_schema)
+        assert_matches_schema(payload["inspect"], self.inspect_schema)
+        self._assert_compare_indexes_consistent(payload["inspect"])
+
+        entry = payload["entry"]
+        manifest = payload["manifest"]
+        latest = payload["latest"]
+        inspect = payload["inspect"]
+        handoff = payload["handoff"]
+        manifest_context = manifest["source"]["contexts"][0]
+        active_context = inspect[entry["active_tool"]][0]
+
+        self.assertEqual(entry["snapshot_id"], latest["snapshot_id"])
+        self.assertEqual(entry["snapshot_id"], manifest["snapshot_id"])
+        self.assertEqual(latest["manifest"], f"manifests/{manifest['snapshot_id']}.json")
+        self.assertEqual(entry["project_id"], manifest["project"]["id"])
+        self.assertEqual(entry["active_tool"], manifest["source"]["tool"])
+        self.assertEqual(set(entry["available_tools"]), set(inspect))
+        self.assertIn(entry["active_tool"], entry["available_tools"])
+        self.assertEqual(entry["handoff_path"], manifest["artifacts"]["handoff"])
+        self.assertEqual(handoff["path"], manifest["artifacts"]["handoff"])
+        self.assertEqual(handoff["current_goal"], manifest_context["goal_candidate"])
+        self.assertEqual(active_context["session_id"], manifest_context["session_id"])
+        self.assertEqual(active_context["title"], manifest_context["title"])
+        self.assertEqual(active_context["score"], manifest_context["score"])
+        self.assertEqual(active_context["goal_candidate"], manifest_context["goal_candidate"])
+        self.assertIn(handoff["title"], handoff["markdown"])
+        self.assertIn(handoff["current_goal"], handoff["markdown"])
+
     def test_codex_export_outputs_match_manifest_and_latest_schema(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp) / "repo"
@@ -321,36 +353,22 @@ class SchemaContractTest(unittest.TestCase):
 
     def test_public_ui_bundle_fixture_matches_schema_and_embedded_contracts(self) -> None:
         payload = json.loads((self.public_examples_dir / "sample-ui-bundle.json").read_text(encoding="utf-8"))
-        assert_matches_schema(payload, self.ui_bundle_schema)
-        assert_matches_schema(payload["latest"], self.latest_pointer_schema)
-        assert_matches_schema(payload["manifest"], self.manifest_schema)
-        assert_matches_schema(payload["inspect"], self.inspect_schema)
-        self._assert_compare_indexes_consistent(payload["inspect"])
+        self._assert_ui_bundle_contracts(payload)
 
-        entry = payload["entry"]
+    def test_public_dirty_ui_bundle_fixture_matches_schema_and_embedded_contracts(self) -> None:
+        payload = json.loads((self.public_examples_dir / "sample-ui-bundle-dirty.json").read_text(encoding="utf-8"))
+        self._assert_ui_bundle_contracts(payload)
+
         manifest = payload["manifest"]
-        latest = payload["latest"]
         inspect = payload["inspect"]
-        handoff = payload["handoff"]
-        manifest_context = manifest["source"]["contexts"][0]
-        active_context = inspect[entry["active_tool"]][0]
 
-        self.assertEqual(entry["snapshot_id"], latest["snapshot_id"])
-        self.assertEqual(entry["snapshot_id"], manifest["snapshot_id"])
-        self.assertEqual(latest["manifest"], f"manifests/{manifest['snapshot_id']}.json")
-        self.assertEqual(entry["project_id"], manifest["project"]["id"])
-        self.assertEqual(entry["active_tool"], manifest["source"]["tool"])
-        self.assertEqual(set(entry["available_tools"]), set(inspect))
-        self.assertIn(entry["active_tool"], entry["available_tools"])
-        self.assertEqual(entry["handoff_path"], manifest["artifacts"]["handoff"])
-        self.assertEqual(handoff["path"], manifest["artifacts"]["handoff"])
-        self.assertEqual(handoff["current_goal"], manifest_context["goal_candidate"])
-        self.assertEqual(active_context["session_id"], manifest_context["session_id"])
-        self.assertEqual(active_context["title"], manifest_context["title"])
-        self.assertEqual(active_context["score"], manifest_context["score"])
-        self.assertEqual(active_context["goal_candidate"], manifest_context["goal_candidate"])
-        self.assertIn(handoff["title"], handoff["markdown"])
-        self.assertIn(handoff["current_goal"], handoff["markdown"])
+        self.assertTrue(manifest["project"]["dirty"])
+        self.assertTrue(manifest["artifacts"]["patch"])
+        self.assertTrue(manifest["redaction"]["warnings"])
+        self.assertGreater(len(manifest["source"]["contexts"]), 1)
+        self.assertEqual(payload["entry"]["active_tool"], "claude")
+        self.assertEqual(payload["entry"]["available_tools"], ["claude"])
+        self.assertTrue(any(not excerpt["selected"] for excerpt in inspect["claude"][0]["all_excerpts"]))
 
 
 if __name__ == "__main__":
