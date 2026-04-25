@@ -7,6 +7,7 @@ from collections import defaultdict
 import json
 import sys
 from datetime import datetime, timezone
+import os
 from pathlib import Path
 
 from . import __version__
@@ -18,10 +19,22 @@ from .adapters import (
     extract_claude_context,
     extract_codex_context,
 )
+from .backends import pull_git_sidecar, push_git_sidecar
+from .config import load_sync_config, require_git_sidecar_config
 from .handoff import render_excerpts, render_handoff, render_import_prompt
 from .project import default_project_id, device_id, find_project_root, git_info, run_git
 from .redaction import redact_text
-from .schema import CONFIG_TEMPLATE, DEFAULT_TOOL, SCHEMA_VERSION, SUPPORTED_TOOLS, SYNC_DIR
+from .schema import (
+    DEFAULT_BACKEND,
+    DEFAULT_STORAGE,
+    DEFAULT_TOOL,
+    SCHEMA_VERSION,
+    SUPPORTED_BACKENDS,
+    SUPPORTED_STORAGES,
+    SUPPORTED_TOOLS,
+    SYNC_DIR,
+    render_config_template,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -37,6 +50,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     init_parser = subcommands.add_parser("init", help="Initialize project-local sync config.")
     init_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
+    init_parser.add_argument("--backend", choices=SUPPORTED_BACKENDS, default=DEFAULT_BACKEND)
+    init_parser.add_argument("--storage", choices=SUPPORTED_STORAGES)
+    init_parser.add_argument("--remote", default="", help="Git remote for sidecar-repo backend.")
+    init_parser.add_argument("--branch", default="main", help="Git branch for sidecar-repo backend.")
     init_parser.add_argument("--force", action="store_true", help="Overwrite existing config.toml.")
     init_parser.set_defaults(func=cmd_init)
 
@@ -82,6 +99,19 @@ def build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("--write-prompt", help="Write prompt to a file.")
     import_parser.set_defaults(func=cmd_import)
 
+    push_parser = subcommands.add_parser("push", help="Push local sync state to the configured sidecar backend.")
+    push_parser.set_defaults(func=cmd_push)
+
+    pull_parser = subcommands.add_parser("pull", help="Pull sync state from the configured sidecar backend.")
+    pull_parser.set_defaults(func=cmd_pull)
+
+    sync_parser = subcommands.add_parser("sync", help="Pull, export, and push in one step.")
+    sync_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
+    sync_parser.add_argument("--goal", default="", help="Current goal to place in handoff.md.")
+    sync_parser.add_argument("--notes", default="", help="Additional notes to include in handoff.md.")
+    sync_parser.add_argument("--include-patch", action="store_true", help="Export git diff as a patch when available.")
+    sync_parser.set_defaults(func=cmd_sync)
+
     return parser
 
 
@@ -97,7 +127,17 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Config already exists: {config_path}")
     else:
         project_id = default_project_id(root)
-        config_path.write_text(CONFIG_TEMPLATE.format(project_id=project_id), encoding="utf-8")
+        storage = args.storage or ("sidecar-repo" if args.backend == "git" else DEFAULT_STORAGE)
+        config_path.write_text(
+            render_config_template(
+                project_id,
+                storage=storage,
+                backend=args.backend,
+                remote=args.remote,
+                branch=args.branch,
+            ),
+            encoding="utf-8",
+        )
         print(f"Wrote {config_path}")
 
     local_path = sync_root / "local.toml"
@@ -116,6 +156,7 @@ def cmd_status(_: argparse.Namespace) -> int:
     root = find_project_root(Path.cwd())
     sync_root = root / SYNC_DIR
     info = git_info(root)
+    config = load_sync_config(root) if (sync_root / "config.toml").exists() else None
     print(f"Project root: {root}")
     print(f"Sync dir: {sync_root} ({'present' if sync_root.exists() else 'missing'})")
     print(f"Git repo: {info['is_git_repo']}")
@@ -124,6 +165,12 @@ def cmd_status(_: argparse.Namespace) -> int:
     print(f"HEAD: {info['head'] or '(unknown)'}")
     print(f"Dirty: {info['dirty']}")
     print(f"Device: {device_id()}")
+    if config is not None:
+        print(f"Storage: {config.storage}")
+        print(f"Backend: {config.backend_name}")
+        if config.git is not None:
+            print(f"Sidecar remote: {config.git.remote or '(unset)'}")
+            print(f"Sidecar branch: {config.git.branch}")
     return 0
 
 
@@ -131,7 +178,7 @@ def cmd_export(args: argparse.Namespace) -> int:
     root = find_project_root(Path.cwd())
     ensure_initialized(root)
     sync_root = root / SYNC_DIR
-    now = datetime.now(timezone.utc)
+    now = _current_utc()
     created_at = now.isoformat()
     snapshot_id = f"{now.strftime('%Y%m%dT%H%M%SZ')}-{device_id()}-{args.tool}"
     info = git_info(root)
@@ -301,12 +348,59 @@ def cmd_import(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_push(_: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    ensure_initialized(root)
+    config = require_git_sidecar_config(root)
+    result = push_git_sidecar(root, config)
+    print(f"Sidecar remote: {result.remote}")
+    print(f"Branch: {result.branch}")
+    if result.commit_created:
+        print(f"Pushed sidecar commit: {result.commit_id}")
+    else:
+        print("No new sidecar commit was needed.")
+    print(f"Copied files: {result.copied_files}")
+    print(f"Latest pointers updated: {', '.join(result.latest_files) or '(none)'}")
+    return 0
+
+
+def cmd_pull(_: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    ensure_initialized(root)
+    config = require_git_sidecar_config(root)
+    result = pull_git_sidecar(root, config)
+    print(f"Sidecar remote: {result.remote}")
+    print(f"Branch: {result.branch}")
+    if not result.remote_has_branch:
+        print("Remote sidecar branch does not exist yet.")
+        return 0
+    print(f"Copied files: {result.copied_files}")
+    print(f"Latest pointers updated: {', '.join(result.latest_files) or '(none)'}")
+    return 0
+
+
+def cmd_sync(args: argparse.Namespace) -> int:
+    root = find_project_root(Path.cwd())
+    ensure_initialized(root)
+    print("Pulling sidecar state...")
+    cmd_pull(argparse.Namespace())
+    print("Exporting new snapshot...")
+    cmd_export(args)
+    print("Pushing sidecar state...")
+    cmd_push(argparse.Namespace())
+    return 0
+
+
 def ensure_initialized(root: Path) -> None:
     sync_root = root / SYNC_DIR
     if not (sync_root / "config.toml").exists():
         class Args:
             force = False
             tool = DEFAULT_TOOL
+            backend = DEFAULT_BACKEND
+            storage = None
+            remote = ""
+            branch = "main"
 
         cmd_init(Args())
 
@@ -319,6 +413,12 @@ def resolve_manifest(sync_root: Path, tool: str, snapshot: str) -> Path:
         if not latest_path.exists():
             raise SystemExit(f"No latest snapshot found for tool '{tool}'.")
         latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        if latest.get("requires_selection"):
+            candidates = latest.get("candidates", [])
+            raise SystemExit(
+                "Latest snapshot requires selection. Specify one of: "
+                + ", ".join(candidate for candidate in candidates if isinstance(candidate, str))
+            )
         return sync_root / latest["manifest"]
 
     candidate = Path(snapshot)
@@ -471,3 +571,17 @@ def _selected_excerpt_positions(selected: list[Excerpt], all_excerpts: list[Exce
         if positions:
             selected_positions.append(positions.pop(0))
     return selected_positions
+
+
+def _current_utc() -> datetime:
+    raw = os.environ.get("AISS_FIXED_NOW", "").strip()
+    if not raw:
+        return datetime.now(timezone.utc)
+
+    text = raw
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)

@@ -22,6 +22,17 @@ def run_cli(tmp_path: Path, *args: str, extra_env: dict[str, str] | None = None)
     )
 
 
+def run_command(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        list(args),
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+
+
 def transcript_timestamp(*, start_minute: int, offset: int) -> str:
     hour = 5 + ((start_minute + offset) // 60)
     minute = (start_minute + offset) % 60
