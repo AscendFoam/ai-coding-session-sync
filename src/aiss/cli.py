@@ -220,6 +220,18 @@ def cmd_status(args: argparse.Namespace) -> int:
         print(f"Latest snapshot: {health.latest_snapshot_id}")
     if health.latest_candidates:
         print(f"Latest candidates: {', '.join(health.latest_candidates)}")
+    patch_replay = health.patch_replay
+    if patch_replay.state != "not-applicable":
+        print(f"Patch replay state: {patch_replay.state}")
+        if patch_replay.patch_path is not None:
+            print(f"Patch replay artifact: {patch_replay.patch_path}")
+        print(f"Patch replay plain apply: {patch_replay.plain_apply_state}")
+        print(f"Patch replay 3-way: {patch_replay.three_way_state}")
+        print(f"Patch replay recommended: {patch_replay.recommended_mode or '(none)'}")
+        if patch_replay.recommended_reason:
+            print(f"Patch replay reason: {patch_replay.recommended_reason}")
+        if patch_replay.recommended_command:
+            print(f"Patch replay command: {patch_replay.recommended_command}")
     if health.sidecar_remote_reachable is not None:
         print(f"Sidecar remote reachable: {health.sidecar_remote_reachable}")
     if health.sidecar_remote_branch_exists is not None:
@@ -258,6 +270,18 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         print("Latest candidates:")
         for candidate in health.latest_candidates:
             print(f"- {candidate}")
+    patch_replay = health.patch_replay
+    if patch_replay.state != "not-applicable":
+        print(f"Patch replay state: {patch_replay.state}")
+        if patch_replay.patch_path is not None:
+            print(f"Patch replay artifact: {patch_replay.patch_path}")
+        print(f"Patch replay plain apply: {patch_replay.plain_apply_state}")
+        print(f"Patch replay 3-way: {patch_replay.three_way_state}")
+        print(f"Patch replay recommended: {patch_replay.recommended_mode or '(none)'}")
+        if patch_replay.recommended_reason:
+            print(f"Patch replay reason: {patch_replay.recommended_reason}")
+        if patch_replay.recommended_command:
+            print(f"Patch replay command: {patch_replay.recommended_command}")
 
     print("Checks:")
     if health.issues:

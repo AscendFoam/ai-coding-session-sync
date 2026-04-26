@@ -251,6 +251,52 @@ class SyncE2ETest(unittest.TestCase):
             self.assertIn("warning: latest pointer requires selection", doctor_conflict.stdout)
             self.assertIn("Run `aiss latest resolve --tool codex <snapshot_id>`.", doctor_conflict.stdout)
 
+    def test_doctor_reports_patch_replay_recommendation_after_pull(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            remote = tmp_path / "sync-state.git"
+            mac_project = tmp_path / "mac" / "sample-project"
+            windows_project = tmp_path / "windows" / "sample-project"
+
+            self._init_bare_remote(remote)
+            self._init_project(mac_project, remote, device_id="sample-macbook")
+            self._init_project(windows_project, remote, device_id="sample-windows")
+            self._init_git_repo(mac_project)
+            self._init_git_repo(windows_project)
+
+            (mac_project / "notes.txt").write_text("base line\npatch line\n", encoding="utf-8")
+            export = run_cli(
+                mac_project,
+                "export",
+                "--tool",
+                "codex",
+                "--goal",
+                "Ship the sidecar sync MVP",
+                "--include-patch",
+                extra_env={
+                    "AISS_DEVICE_ID": "sample-macbook",
+                    "AISS_FIXED_NOW": "2026-04-25T08:00:00Z",
+                },
+            )
+            self.assertEqual(export.returncode, 0, export.stderr)
+            restore = run_command(mac_project, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+
+            push = run_cli(mac_project, "push", extra_env={"AISS_DEVICE_ID": "sample-macbook"})
+            self.assertEqual(push.returncode, 0, push.stderr)
+
+            pull = run_cli(windows_project, "pull", extra_env={"AISS_DEVICE_ID": "sample-windows"})
+            self.assertEqual(pull.returncode, 0, pull.stderr)
+
+            doctor = run_cli(windows_project, "doctor", "--tool", "codex")
+            self.assertEqual(doctor.returncode, 0, doctor.stderr)
+            self.assertIn("Patch replay state: ready", doctor.stdout)
+            self.assertIn("Patch replay recommended: apply", doctor.stdout)
+            self.assertIn(
+                "Patch replay command: aiss import --tool codex --snapshot 20260425T080000Z-sample-macbook-codex --apply-patch",
+                doctor.stdout,
+            )
+
     def _init_bare_remote(self, remote: Path) -> None:
         remote.parent.mkdir(parents=True, exist_ok=True)
         init = run_command(remote.parent, "git", "init", "--bare", remote.name)
@@ -272,6 +318,22 @@ class SyncE2ETest(unittest.TestCase):
             extra_env={"AISS_DEVICE_ID": device_id},
         )
         self.assertEqual(init.returncode, 0, init.stderr)
+
+    def _init_git_repo(self, repo: Path) -> None:
+        init = run_command(repo, "git", "init")
+        self.assertEqual(init.returncode, 0, init.stderr)
+        config_name = run_command(repo, "git", "config", "user.name", "AISS Test")
+        self.assertEqual(config_name.returncode, 0, config_name.stderr)
+        config_email = run_command(repo, "git", "config", "user.email", "aiss@example.com")
+        self.assertEqual(config_email.returncode, 0, config_email.stderr)
+        checkout = run_command(repo, "git", "checkout", "-b", "main")
+        self.assertEqual(checkout.returncode, 0, checkout.stderr)
+        (repo / ".gitignore").write_text(".ai-session-sync/\n", encoding="utf-8")
+        (repo / "notes.txt").write_text("base line\n", encoding="utf-8")
+        add = run_command(repo, "git", "add", ".")
+        self.assertEqual(add.returncode, 0, add.stderr)
+        commit = run_command(repo, "git", "commit", "-m", "initial")
+        self.assertEqual(commit.returncode, 0, commit.stderr)
 
 
 if __name__ == "__main__":

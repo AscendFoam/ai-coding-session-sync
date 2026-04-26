@@ -353,6 +353,98 @@ class CliSmokeTest(unittest.TestCase):
             self.assertIn("warning: sidecar git remote is not configured", doctor.stdout)
             self.assertIn("Run `aiss export --tool codex|claude` or `aiss pull` to create sync state.", doctor.stdout)
 
+    def test_status_and_doctor_report_plain_patch_replay_recommendation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            self._init_git_repo(repo)
+
+            init = run_cli(repo, "init")
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            snapshot_id = self._export_patch_snapshot(repo)
+            restore = run_command(repo, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+
+            status = run_cli(repo, "status", "--tool", "codex")
+            self.assertEqual(status.returncode, 0, status.stderr)
+            self.assertIn("Patch replay state: ready", status.stdout)
+            self.assertIn("Patch replay plain apply: ok", status.stdout)
+            self.assertIn("Patch replay 3-way: ok", status.stdout)
+            self.assertIn("Patch replay recommended: apply", status.stdout)
+            self.assertIn(
+                f"Patch replay command: aiss import --tool codex --snapshot {snapshot_id} --apply-patch",
+                status.stdout,
+            )
+
+            doctor = run_cli(repo, "doctor", "--tool", "codex")
+            self.assertEqual(doctor.returncode, 0, doctor.stderr)
+            self.assertIn("Patch replay recommended: apply", doctor.stdout)
+            self.assertIn("Plain patch replay is clean on the current checkout.", doctor.stdout)
+
+    def test_status_and_doctor_report_branch_recommendation_after_head_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            self._init_git_repo(repo, notes_text="base line\nsecond line\n")
+
+            init = run_cli(repo, "init")
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            snapshot_id = self._export_patch_snapshot(
+                repo,
+                patched_notes_text="base line\nsecond patched\n",
+            )
+            restore = run_command(repo, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+            (repo / "notes.txt").write_text("base line changed\nsecond line\n", encoding="utf-8")
+            commit = run_command(repo, "git", "commit", "-am", "change first line")
+            self.assertEqual(commit.returncode, 0, commit.stderr)
+
+            status = run_cli(repo, "status", "--tool", "codex")
+            self.assertEqual(status.returncode, 0, status.stderr)
+            self.assertIn("Patch replay plain apply: failed", status.stdout)
+            self.assertIn("Patch replay 3-way: conflicts", status.stdout)
+            self.assertIn("Patch replay recommended: branch", status.stdout)
+            self.assertIn(
+                f"Patch replay command: aiss import --tool codex --snapshot {snapshot_id} --apply-patch --patch-mode branch --patch-branch {default_patch_branch_name(snapshot_id)}",
+                status.stdout,
+            )
+
+            doctor = run_cli(repo, "doctor", "--tool", "codex")
+            self.assertEqual(doctor.returncode, 0, doctor.stderr)
+            self.assertIn("Patch replay recommended: branch", doctor.stdout)
+            self.assertIn("isolating it on a temporary branch is safer", doctor.stdout)
+
+    def test_status_and_doctor_report_blocked_patch_replay_on_dirty_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            self._init_git_repo(repo)
+
+            init = run_cli(repo, "init")
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            snapshot_id = self._export_patch_snapshot(repo)
+            restore = run_command(repo, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+            (repo / "scratch.txt").write_text("scratch base\nlocal dirty change\n", encoding="utf-8")
+
+            status = run_cli(repo, "status", "--tool", "codex")
+            self.assertEqual(status.returncode, 0, status.stderr)
+            self.assertIn("Patch replay state: blocked", status.stdout)
+            self.assertIn("Patch replay recommended: apply", status.stdout)
+            self.assertIn("Current worktree is dirty", status.stdout)
+            self.assertIn(
+                f"Patch replay command: aiss import --tool codex --snapshot {snapshot_id} --apply-patch",
+                status.stdout,
+            )
+
+            doctor = run_cli(repo, "doctor", "--tool", "codex")
+            self.assertEqual(doctor.returncode, 0, doctor.stderr)
+            self.assertIn("warning: patch replay is blocked by the current dirty worktree", doctor.stdout)
+            self.assertIn("Patch replay state: blocked", doctor.stdout)
+
     def _init_git_repo(self, repo: Path, *, notes_text: str = "base line\n") -> None:
         init = run_command(repo, "git", "init")
         self.assertEqual(init.returncode, 0, init.stderr)
