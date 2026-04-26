@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from tests.cli_test_utils import run_cli, run_command
+from aiss.patching import default_patch_branch_name
 
 
 class CliSmokeTest(unittest.TestCase):
@@ -71,6 +72,10 @@ class CliSmokeTest(unittest.TestCase):
             self.assertIn("- `git apply --check` succeeded.", imported.stdout)
             self.assertIn(
                 f"- Safe path: run `aiss import --tool codex --snapshot {snapshot_id} --apply-patch` if you want to replay the uncommitted work now.",
+                imported.stdout,
+            )
+            self.assertIn(
+                f"- Safer isolation path: run `aiss import --tool codex --snapshot {snapshot_id} --apply-patch --patch-mode branch --patch-branch {default_patch_branch_name(snapshot_id)}` to replay it on a temporary branch.",
                 imported.stdout,
             )
 
@@ -177,12 +182,103 @@ class CliSmokeTest(unittest.TestCase):
             self.assertEqual(imported.returncode, 0, imported.stderr)
             self.assertIn("- HEAD differs from the export snapshot.", imported.stdout)
             self.assertIn("- `git apply --check` failed:", imported.stdout)
-            self.assertIn("Review the handoff first; patch replay is not safe until the mismatch is resolved.", imported.stdout)
+            self.assertIn("- `git apply --3way --check` can proceed by merging, but conflict resolution will still be needed.", imported.stdout)
+            self.assertIn(
+                f"- Try `aiss import --tool codex --snapshot {snapshot_id} --apply-patch --patch-mode 3way` if you want Git to attempt a merge in the current worktree.",
+                imported.stdout,
+            )
+            self.assertIn(
+                f"- Safer isolation path: run `aiss import --tool codex --snapshot {snapshot_id} --apply-patch --patch-mode branch --patch-branch {default_patch_branch_name(snapshot_id)}` to do that replay on a temporary branch instead.",
+                imported.stdout,
+            )
 
             apply_attempt = run_cli(repo, "import", "--tool", "codex", "--snapshot", snapshot_id, "--apply-patch")
             self.assertNotEqual(apply_attempt.returncode, 0)
             combined = f"{apply_attempt.stdout}\n{apply_attempt.stderr}"
             self.assertIn("Patch does not apply cleanly:", combined)
+            self.assertIn("--patch-mode 3way", combined)
+
+    def test_import_can_apply_patch_with_three_way_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            self._init_git_repo(repo, notes_text="base line\nsecond line\n")
+
+            init = run_cli(repo, "init")
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            snapshot_id = self._export_patch_snapshot(
+                repo,
+                patched_notes_text="base line\nsecond patched\n",
+            )
+
+            restore = run_command(repo, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+            (repo / "notes.txt").write_text("base line changed\nsecond line\n", encoding="utf-8")
+            commit = run_command(repo, "git", "commit", "-am", "change first line")
+            self.assertEqual(commit.returncode, 0, commit.stderr)
+
+            applied = run_cli(
+                repo,
+                "import",
+                "--tool",
+                "codex",
+                "--snapshot",
+                snapshot_id,
+                "--apply-patch",
+                "--patch-mode",
+                "3way",
+            )
+            self.assertNotEqual(applied.returncode, 0)
+            combined = f"{applied.stdout}\n{applied.stderr}"
+            self.assertIn("Patch 3-way apply left conflicts in the current worktree:", combined)
+            self.assertIn("--patch-mode branch", combined)
+            notes = (repo / "notes.txt").read_text(encoding="utf-8")
+            self.assertIn("<<<<<<< ours", notes)
+            self.assertIn(">>>>>>> theirs", notes)
+
+    def test_import_can_apply_patch_on_temporary_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            self._init_git_repo(repo, notes_text="base line\nsecond line\n")
+
+            init = run_cli(repo, "init")
+            self.assertEqual(init.returncode, 0, init.stderr)
+
+            snapshot_id = self._export_patch_snapshot(
+                repo,
+                patched_notes_text="base line\nsecond patched\n",
+            )
+
+            restore = run_command(repo, "git", "checkout", "--", "notes.txt")
+            self.assertEqual(restore.returncode, 0, restore.stderr)
+            (repo / "notes.txt").write_text("base line changed\nsecond line\n", encoding="utf-8")
+            commit = run_command(repo, "git", "commit", "-am", "change first line")
+            self.assertEqual(commit.returncode, 0, commit.stderr)
+
+            applied = run_cli(
+                repo,
+                "import",
+                "--tool",
+                "codex",
+                "--snapshot",
+                snapshot_id,
+                "--apply-patch",
+                "--patch-mode",
+                "branch",
+            )
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            self.assertIn(
+                f"Created branch '{default_patch_branch_name(snapshot_id)}' and replayed the patch there, but manual conflict resolution is still needed:",
+                applied.stdout,
+            )
+            branch = run_command(repo, "git", "branch", "--show-current")
+            self.assertEqual(branch.returncode, 0, branch.stderr)
+            self.assertEqual(branch.stdout.strip(), default_patch_branch_name(snapshot_id))
+            notes = (repo / "notes.txt").read_text(encoding="utf-8")
+            self.assertIn("<<<<<<< ours", notes)
+            self.assertIn(">>>>>>> theirs", notes)
 
     def test_latest_show_and_resolve_conflict_pointer(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -257,7 +353,7 @@ class CliSmokeTest(unittest.TestCase):
             self.assertIn("warning: sidecar git remote is not configured", doctor.stdout)
             self.assertIn("Run `aiss export --tool codex|claude` or `aiss pull` to create sync state.", doctor.stdout)
 
-    def _init_git_repo(self, repo: Path) -> None:
+    def _init_git_repo(self, repo: Path, *, notes_text: str = "base line\n") -> None:
         init = run_command(repo, "git", "init")
         self.assertEqual(init.returncode, 0, init.stderr)
         config_name = run_command(repo, "git", "config", "user.name", "AISS Test")
@@ -267,15 +363,15 @@ class CliSmokeTest(unittest.TestCase):
         checkout = run_command(repo, "git", "checkout", "-b", "main")
         self.assertEqual(checkout.returncode, 0, checkout.stderr)
         (repo / ".gitignore").write_text(".ai-session-sync/\n", encoding="utf-8")
-        (repo / "notes.txt").write_text("base line\n", encoding="utf-8")
+        (repo / "notes.txt").write_text(notes_text, encoding="utf-8")
         (repo / "scratch.txt").write_text("scratch base\n", encoding="utf-8")
         add = run_command(repo, "git", "add", ".")
         self.assertEqual(add.returncode, 0, add.stderr)
         commit = run_command(repo, "git", "commit", "-m", "initial")
         self.assertEqual(commit.returncode, 0, commit.stderr)
 
-    def _export_patch_snapshot(self, repo: Path) -> str:
-        (repo / "notes.txt").write_text("base line\npatch line\n", encoding="utf-8")
+    def _export_patch_snapshot(self, repo: Path, *, patched_notes_text: str = "base line\npatch line\n") -> str:
+        (repo / "notes.txt").write_text(patched_notes_text, encoding="utf-8")
         export = run_cli(
             repo,
             "export",

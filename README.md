@@ -61,6 +61,8 @@ Implemented now:
 - `status`
 - `export`
 - `import --print-prompt`
+- import-time patch safety checks
+- `import --apply-patch --patch-mode apply|3way|branch`
 - manifest generation
 - handoff generation
 - optional Git patch export
@@ -90,6 +92,31 @@ The project should default to:
 - redaction before write;
 - sidecar storage for sensitive work;
 - encryption before remote sync.
+
+Patch replay follows the same conservative rule:
+
+- `aiss import` stays check-only by default;
+- the CLI surfaces patch presence, branch/HEAD drift, dirty worktree state, and `git apply --check` results;
+- `--apply-patch` is always explicit;
+- dirty worktrees are blocked unless you also pass `--allow-dirty`;
+- `--patch-mode 3way` lets Git attempt a merge when plain apply no longer fits;
+- `--patch-mode branch` replays the patch on a temporary branch so conflict resolution does not immediately land on your main checkout.
+
+Example:
+
+```bash
+PYTHONPATH=src python -m aiss export --tool codex --include-patch
+PYTHONPATH=src python -m aiss import --tool codex --snapshot latest --print-prompt
+
+# apply directly when the check is clean
+PYTHONPATH=src python -m aiss import --tool codex --snapshot latest --apply-patch
+
+# let Git try a 3-way merge when HEAD has moved
+PYTHONPATH=src python -m aiss import --tool codex --snapshot latest --apply-patch --patch-mode 3way
+
+# safer isolation path for risky replays
+PYTHONPATH=src python -m aiss import --tool codex --snapshot latest --apply-patch --patch-mode branch
+```
 
 ## Public Repo Defaults
 

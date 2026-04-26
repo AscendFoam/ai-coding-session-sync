@@ -139,7 +139,12 @@ def render_patch_guidance(
     head_matches: bool | None,
     check_ok: bool | None,
     check_error: str | None,
+    three_way_check_ok: bool | None,
+    three_way_check_conflicts: bool | None,
+    three_way_check_error: str | None,
     apply_command: str,
+    three_way_command: str,
+    branch_command: str,
 ) -> str:
     if not patch_path:
         return "Patch status: no patch artifact was exported for this snapshot."
@@ -164,13 +169,29 @@ def render_patch_guidance(
     lines.append(f"- Current worktree dirty: {project_dirty}")
     if check_ok is True:
         lines.append("- `git apply --check` succeeded.")
+        if three_way_check_ok is True:
+            if three_way_check_conflicts:
+                lines.append("- `git apply --3way --check` can recover by merging, but it expects conflict review.")
+            else:
+                lines.append("- `git apply --3way --check` also succeeds.")
         if project_dirty:
             lines.append(f"- To replay it anyway, run `{apply_command} --allow-dirty` after reviewing your local changes.")
         else:
             lines.append(f"- Safe path: run `{apply_command}` if you want to replay the uncommitted work now.")
+        lines.append(f"- Safer isolation path: run `{branch_command}` to replay it on a temporary branch.")
     elif check_ok is False:
         lines.append(f"- `git apply --check` failed: {check_error}")
-        lines.append("- Review the handoff first; patch replay is not safe until the mismatch is resolved.")
+        if three_way_check_ok is True:
+            if three_way_check_conflicts:
+                lines.append("- `git apply --3way --check` can proceed by merging, but conflict resolution will still be needed.")
+            else:
+                lines.append("- `git apply --3way --check` succeeds, so a 3-way replay may still work.")
+            lines.append(f"- Try `{three_way_command}` if you want Git to attempt a merge in the current worktree.")
+            lines.append(f"- Safer isolation path: run `{branch_command}` to do that replay on a temporary branch instead.")
+        else:
+            if three_way_check_error:
+                lines.append(f"- `git apply --3way --check` also failed: {three_way_check_error}")
+            lines.append("- Review the handoff first; patch replay is not safe until the mismatch is resolved.")
     else:
         lines.append("- Patch apply readiness was not checked.")
     return "\n".join(lines)

@@ -207,3 +207,38 @@ Recommended UI usage:
 ## Patch
 
 Patch export is optional. Import must default to check-only behavior and should never mutate a dirty worktree without explicit user confirmation.
+
+Current import contract:
+
+- `aiss import` without `--apply-patch` only inspects and explains patch replay risk.
+- The inspection summary should include:
+  - whether the patch artifact exists locally;
+  - whether the current checkout is a Git worktree;
+  - current branch and HEAD;
+  - export-time branch and HEAD from the manifest;
+  - whether plain `git apply --check` succeeds;
+  - whether `git apply --3way --check` succeeds.
+- Dirty worktrees must be refused by default for any mutating patch replay command.
+- `--allow-dirty` is an explicit escape hatch for advanced cases and should remain opt-in.
+
+Recommended replay strategies:
+
+- `apply`: plain `git apply`; use when `git apply --check` is already clean.
+- `3way`: `git apply --3way`; use when plain apply no longer fits but Git can still merge against blob history.
+- `branch`: create a temporary branch and replay there, typically with plain apply when possible and `--3way` as fallback.
+
+Current CLI mapping:
+
+```bash
+aiss import --tool codex --snapshot latest
+aiss import --tool codex --snapshot latest --apply-patch
+aiss import --tool codex --snapshot latest --apply-patch --patch-mode 3way
+aiss import --tool codex --snapshot latest --apply-patch --patch-mode branch
+```
+
+Safety intent:
+
+- default path: inspect only;
+- fast path: direct apply on a clean worktree;
+- resilient path: 3-way replay when the checkout has drifted;
+- safer isolation path: temporary branch replay when the operator wants conflict resolution away from the current checkout.

@@ -23,7 +23,15 @@ from .backends import pull_git_sidecar, push_git_sidecar
 from .config import load_sync_config, require_git_sidecar_config
 from .doctor import inspect_sync_health
 from .handoff import render_excerpts, render_handoff, render_import_prompt, render_patch_guidance
-from .patching import apply_patch, inspect_patch
+from .patching import (
+    PATCH_MODE_APPLY,
+    PATCH_MODE_BRANCH,
+    PATCH_MODE_THREE_WAY,
+    PATCH_MODES,
+    apply_patch,
+    default_patch_branch_name,
+    inspect_patch,
+)
 from .project import default_project_id, device_id, find_project_root, git_info, run_git
 from .redaction import redact_text
 from .schema import (
@@ -105,6 +113,16 @@ def build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("--print-prompt", action="store_true", help="Print prompt to stdout.")
     import_parser.add_argument("--write-prompt", help="Write prompt to a file.")
     import_parser.add_argument("--apply-patch", action="store_true", help="Apply the exported patch if one is available.")
+    import_parser.add_argument(
+        "--patch-mode",
+        choices=PATCH_MODES,
+        default=PATCH_MODE_APPLY,
+        help="Patch replay strategy: direct apply, 3-way apply, or create a temporary branch first.",
+    )
+    import_parser.add_argument(
+        "--patch-branch",
+        help="Branch name to use with --patch-mode branch. Defaults to a snapshot-derived name.",
+    )
     import_parser.add_argument(
         "--allow-dirty",
         action="store_true",
@@ -420,9 +438,11 @@ def cmd_import(args: argparse.Namespace) -> int:
     excerpts_path = sync_root / artifacts["recent_turns"] if artifacts.get("recent_turns") else None
     patch_rel = artifacts.get("patch")
     patch_path = sync_root / patch_rel if patch_rel else None
+    snapshot_id = manifest["snapshot_id"]
     project = manifest.get("project", {})
     exported_branch = project.get("branch") if isinstance(project.get("branch"), str) else None
     exported_head = project.get("head") if isinstance(project.get("head"), str) else None
+    patch_branch = args.patch_branch or default_patch_branch_name(snapshot_id)
     patch_check = inspect_patch(
         root,
         patch_path,
@@ -443,7 +463,15 @@ def cmd_import(args: argparse.Namespace) -> int:
         head_matches=patch_check.head_matches,
         check_ok=patch_check.check_ok,
         check_error=patch_check.check_error,
-        apply_command=f"aiss import --tool {args.tool} --snapshot {manifest['snapshot_id']} --apply-patch",
+        three_way_check_ok=patch_check.three_way_check_ok,
+        three_way_check_conflicts=patch_check.three_way_check_conflicts,
+        three_way_check_error=patch_check.three_way_check_error,
+        apply_command=f"aiss import --tool {args.tool} --snapshot {snapshot_id} --apply-patch",
+        three_way_command=f"aiss import --tool {args.tool} --snapshot {snapshot_id} --apply-patch --patch-mode 3way",
+        branch_command=(
+            f"aiss import --tool {args.tool} --snapshot {snapshot_id} --apply-patch "
+            f"--patch-mode branch --patch-branch {patch_branch}"
+        ),
     )
 
     if args.write_prompt:
@@ -460,9 +488,12 @@ def cmd_import(args: argparse.Namespace) -> int:
         result = apply_patch(
             root,
             patch_path,
+            mode=args.patch_mode,
             allow_dirty=args.allow_dirty,
             exported_branch=exported_branch,
             exported_head=exported_head,
+            branch_name=args.patch_branch,
+            snapshot_id=snapshot_id,
         )
         if not result.applied:
             raise SystemExit(result.message)
