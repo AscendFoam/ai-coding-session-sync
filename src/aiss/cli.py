@@ -22,7 +22,8 @@ from .adapters import (
 from .backends import pull_git_sidecar, push_git_sidecar
 from .config import load_sync_config, require_git_sidecar_config
 from .doctor import inspect_sync_health
-from .handoff import render_excerpts, render_handoff, render_import_prompt
+from .handoff import render_excerpts, render_handoff, render_import_prompt, render_patch_guidance
+from .patching import apply_patch, inspect_patch
 from .project import default_project_id, device_id, find_project_root, git_info, run_git
 from .redaction import redact_text
 from .schema import (
@@ -103,6 +104,12 @@ def build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("--snapshot", default="latest", help="Snapshot id, manifest path, or 'latest'.")
     import_parser.add_argument("--print-prompt", action="store_true", help="Print prompt to stdout.")
     import_parser.add_argument("--write-prompt", help="Write prompt to a file.")
+    import_parser.add_argument("--apply-patch", action="store_true", help="Apply the exported patch if one is available.")
+    import_parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="Allow patch application even when the current worktree is already dirty.",
+    )
     import_parser.set_defaults(func=cmd_import)
 
     push_parser = subcommands.add_parser("push", help="Push local sync state to the configured sidecar backend.")
@@ -271,12 +278,12 @@ def cmd_export(args: argparse.Namespace) -> int:
 
     patch_rel: str | None = None
     if args.include_patch and info["is_git_repo"] and info["dirty"]:
-        code, patch, err = run_git(["diff", "--binary"], root)
+        code, patch, err = run_git(["diff", "--binary"], root, strip=False)
         if code != 0:
             print(f"Warning: could not export patch: {err}", file=sys.stderr)
         elif patch:
             patch_rel = f"patches/{snapshot_id}.patch"
-            (sync_root / patch_rel).write_text(redact_text(patch), encoding="utf-8")
+            (sync_root / patch_rel).write_text(patch, encoding="utf-8")
 
     handoff_rel = f"handoffs/{snapshot_id}.md"
     excerpts_rel = f"excerpts/{snapshot_id}.jsonl"
@@ -411,13 +418,55 @@ def cmd_import(args: argparse.Namespace) -> int:
     artifacts = manifest["artifacts"]
     handoff_path = sync_root / artifacts["handoff"]
     excerpts_path = sync_root / artifacts["recent_turns"] if artifacts.get("recent_turns") else None
+    patch_rel = artifacts.get("patch")
+    patch_path = sync_root / patch_rel if patch_rel else None
+    project = manifest.get("project", {})
+    exported_branch = project.get("branch") if isinstance(project.get("branch"), str) else None
+    exported_head = project.get("head") if isinstance(project.get("head"), str) else None
+    patch_check = inspect_patch(
+        root,
+        patch_path,
+        exported_branch=exported_branch,
+        exported_head=exported_head,
+    )
     prompt = render_import_prompt(handoff_path, excerpts_path)
+    patch_summary = render_patch_guidance(
+        patch_path=patch_rel,
+        patch_exists=patch_check.patch_exists,
+        project_is_git_repo=patch_check.project_is_git_repo,
+        project_branch=patch_check.project_branch,
+        project_head=patch_check.project_head,
+        project_dirty=patch_check.project_dirty,
+        exported_branch=patch_check.exported_branch,
+        exported_head=patch_check.exported_head,
+        branch_matches=patch_check.branch_matches,
+        head_matches=patch_check.head_matches,
+        check_ok=patch_check.check_ok,
+        check_error=patch_check.check_error,
+        apply_command=f"aiss import --tool {args.tool} --snapshot {manifest['snapshot_id']} --apply-patch",
+    )
 
     if args.write_prompt:
         output = Path(args.write_prompt)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(prompt, encoding="utf-8")
         print(f"Wrote prompt: {output}")
+
+    print(patch_summary)
+
+    if args.apply_patch:
+        if patch_path is None:
+            raise SystemExit("This snapshot does not include a patch artifact.")
+        result = apply_patch(
+            root,
+            patch_path,
+            allow_dirty=args.allow_dirty,
+            exported_branch=exported_branch,
+            exported_head=exported_head,
+        )
+        if not result.applied:
+            raise SystemExit(result.message)
+        print(result.message)
 
     if args.print_prompt or not args.write_prompt:
         print(prompt)

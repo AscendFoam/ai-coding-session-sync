@@ -125,6 +125,57 @@ def render_import_prompt(handoff_path: Path, excerpts_path: Path | None) -> str:
 """
 
 
+def render_patch_guidance(
+    *,
+    patch_path: str | None,
+    patch_exists: bool,
+    project_is_git_repo: bool,
+    project_branch: str | None,
+    project_head: str | None,
+    project_dirty: bool | None,
+    exported_branch: str | None,
+    exported_head: str | None,
+    branch_matches: bool | None,
+    head_matches: bool | None,
+    check_ok: bool | None,
+    check_error: str | None,
+    apply_command: str,
+) -> str:
+    if not patch_path:
+        return "Patch status: no patch artifact was exported for this snapshot."
+
+    lines = [f"Patch status: `{patch_path}`"]
+    if not patch_exists:
+        lines.append("- Patch file is missing locally.")
+        return "\n".join(lines)
+
+    if not project_is_git_repo:
+        lines.append("- Current project is not a Git worktree, so patch apply is unavailable.")
+        return "\n".join(lines)
+
+    lines.append(f"- Export branch: `{exported_branch or '(unknown)'}`")
+    lines.append(f"- Current branch: `{project_branch or '(unknown)'}`")
+    if branch_matches is False:
+        lines.append("- Branch differs from the export snapshot.")
+    lines.append(f"- Export HEAD: `{exported_head or '(unknown)'}`")
+    lines.append(f"- Current HEAD: `{project_head or '(unknown)'}`")
+    if head_matches is False:
+        lines.append("- HEAD differs from the export snapshot.")
+    lines.append(f"- Current worktree dirty: {project_dirty}")
+    if check_ok is True:
+        lines.append("- `git apply --check` succeeded.")
+        if project_dirty:
+            lines.append(f"- To replay it anyway, run `{apply_command} --allow-dirty` after reviewing your local changes.")
+        else:
+            lines.append(f"- Safe path: run `{apply_command}` if you want to replay the uncommitted work now.")
+    elif check_ok is False:
+        lines.append(f"- `git apply --check` failed: {check_error}")
+        lines.append("- Review the handoff first; patch replay is not safe until the mismatch is resolved.")
+    else:
+        lines.append("- Patch apply readiness was not checked.")
+    return "\n".join(lines)
+
+
 def _render_completed_work(contexts: list[ExtractedContext], project_root: Path) -> str:
     if not contexts:
         return "- No local transcript context was found; this handoff uses only direct CLI inputs and Git state."

@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 
 
-def run_git(args: list[str], cwd: Path) -> tuple[int, str, str]:
+def run_git(args: list[str], cwd: Path, *, strip: bool = True) -> tuple[int, str, str]:
     process = subprocess.run(
         ["git", *args],
         cwd=str(cwd),
@@ -18,7 +18,9 @@ def run_git(args: list[str], cwd: Path) -> tuple[int, str, str]:
         stderr=subprocess.PIPE,
         check=False,
     )
-    return process.returncode, process.stdout.strip(), process.stderr.strip()
+    stdout = process.stdout.strip() if strip else process.stdout
+    stderr = process.stderr.strip() if strip else process.stderr
+    return process.returncode, stdout, stderr
 
 
 def find_project_root(start: Path) -> Path:
