@@ -50,6 +50,7 @@ class SchemaContractTest(unittest.TestCase):
         latest = payload["latest"]
         inspect = payload["inspect"]
         handoff = payload["handoff"]
+        patch_replay = payload["patch_replay"]
         manifest_context = manifest["source"]["contexts"][0]
         active_context = inspect[entry["active_tool"]][0]
 
@@ -69,6 +70,19 @@ class SchemaContractTest(unittest.TestCase):
         self.assertEqual(active_context["goal_candidate"], manifest_context["goal_candidate"])
         self.assertIn(handoff["title"], handoff["markdown"])
         self.assertIn(handoff["current_goal"], handoff["markdown"])
+        self.assertIn(patch_replay["recommended_mode"], {"apply", "3way", "branch", "none", None})
+        if manifest["artifacts"]["patch"] is None:
+            self.assertEqual(patch_replay["state"], "none")
+            self.assertEqual(patch_replay["recommended_mode"], "none")
+            self.assertIsNone(patch_replay["recommended_command"])
+        else:
+            self.assertEqual(patch_replay["patch_path"], manifest["artifacts"]["patch"])
+            if patch_replay["recommended_mode"] == "branch":
+                self.assertIn("--patch-mode branch", patch_replay["recommended_command"])
+            elif patch_replay["recommended_mode"] == "3way":
+                self.assertIn("--patch-mode 3way", patch_replay["recommended_command"])
+            elif patch_replay["recommended_mode"] == "apply":
+                self.assertIn("--apply-patch", patch_replay["recommended_command"])
 
     def test_codex_export_outputs_match_manifest_and_latest_schema(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -369,6 +383,9 @@ class SchemaContractTest(unittest.TestCase):
         self.assertEqual(payload["entry"]["active_tool"], "claude")
         self.assertEqual(payload["entry"]["available_tools"], ["claude"])
         self.assertTrue(any(not excerpt["selected"] for excerpt in inspect["claude"][0]["all_excerpts"]))
+        self.assertEqual(payload["patch_replay"]["state"], "blocked")
+        self.assertEqual(payload["patch_replay"]["recommended_mode"], "branch")
+        self.assertEqual(payload["patch_replay"]["three_way_state"], "conflicts")
 
 
 if __name__ == "__main__":

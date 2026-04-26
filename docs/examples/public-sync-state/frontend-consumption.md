@@ -27,6 +27,7 @@ It already inlines:
 - `manifest`
 - `inspect`
 - `handoff`
+- `patch_replay`
 
 Use the split fixtures when you want to test conflict state, dirty state, or individual contract files in isolation.
 
@@ -181,6 +182,38 @@ When you want those states in one request instead of three separate files, use `
 - `manifest.redaction.warnings`
 - `manifest.source.contexts`
 - `inspect.claude[0]`
+- `patch_replay`
+
+### 7. Patch Replay Recommendation View
+
+Primary input:
+
+- `sample-ui-bundle.json`
+- `sample-ui-bundle-dirty.json`
+
+Use `patch_replay` as the direct data source for a doctor/status-style guidance panel.
+
+Recommended mapping:
+
+- badge or state chip:
+  - `patch_replay.state`
+- capability rows:
+  - `patch_replay.plain_apply_state`
+  - `patch_replay.three_way_state`
+- recommendation callout:
+  - `patch_replay.recommended_mode`
+  - `patch_replay.recommended_reason`
+  - `patch_replay.recommended_command`
+- optional artifact link:
+  - `patch_replay.patch_path`
+
+Suggested UI behavior:
+
+- render `state == "none"` as an informational empty state rather than a warning;
+- render `state == "blocked"` as a caution state that explains why replay is paused;
+- render `recommended_mode == "branch"` as the strongest safe recommendation when conflicts or dirty state are present;
+- expose `recommended_command` as copyable command text for terminal-oriented users;
+- keep this panel independent from the handoff markdown so the UI can summarize replay risk without parsing prose.
 
 ## Minimal UI Build Order
 
@@ -190,8 +223,9 @@ When you want those states in one request instead of three separate files, use `
 4. Render handoff pane from `handoff.markdown`
 5. Render compare timeline from `inspect`
 6. Add conflict-state handling using `sample-latest-conflict.json`
-7. Add dirty / warning handling using `sample-ui-bundle-dirty.json`
-8. Keep `sample-manifest-dirty.json` and `sample-inspect-output-dirty.json` for isolated state testing
+7. Add patch replay recommendation panel using `patch_replay`
+8. Add dirty / warning handling using `sample-ui-bundle-dirty.json`
+9. Keep `sample-manifest-dirty.json` and `sample-inspect-output-dirty.json` for isolated state testing
 
 ## Practical Notes
 

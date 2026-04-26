@@ -13,7 +13,8 @@
     "latest",
     "manifest",
     "inspect",
-    "handoff"
+    "handoff",
+    "patch_replay"
   ],
   "properties": {
     "schema_version": {
@@ -50,6 +51,9 @@
     },
     "handoff": {
       "$ref": "#/$defs/handoff"
+    },
+    "patch_replay": {
+      "$ref": "#/$defs/patchReplay"
     }
   },
   "$defs": {
@@ -138,6 +142,81 @@
         },
         "markdown": {
           "type": "string"
+        }
+      }
+    },
+    "patchReplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "plain_apply_state",
+        "three_way_state",
+        "recommended_mode",
+        "recommended_reason",
+        "recommended_command"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "blocked",
+            "missing",
+            "unavailable",
+            "none",
+            "not-applicable"
+          ]
+        },
+        "patch_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "plain_apply_state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "failed",
+            "unavailable",
+            "not-applicable"
+          ]
+        },
+        "three_way_state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "conflicts",
+            "failed",
+            "unavailable",
+            "not-applicable"
+          ]
+        },
+        "recommended_mode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "apply",
+            "3way",
+            "branch",
+            "none",
+            null
+          ]
+        },
+        "recommended_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recommended_command": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     }

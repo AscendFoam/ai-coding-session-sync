@@ -261,5 +261,14 @@
     "current_goal": "Continue implementing inspect compare metadata for the Web UI.",
     "summary": "Codex snapshot focused on compare metadata, schema contracts, and public-safe fixture support for the first Web UI prototype.",
     "markdown": "# Session Handoff\n\n## Current Goal\n\nContinue implementing inspect compare metadata for the Web UI.\n\n## Project State\n\n- Tool: codex\n- Repository: https://example.com/org/sample-project.git\n- Branch: main\n- HEAD: abc1234\n- Dirty worktree: False\n- Patch: (not exported)\n\n## Completed Work\n\n- Added compare metadata to `inspect --json` so `all_excerpts` exposes `selected` and `selected_index`.\n- Added reverse mapping in `excerpts` using `all_excerpt_index` for direct UI linking.\n- Split schema validation into a dedicated contract test layer.\n\n## Recent Context Summary\n\n- Latest user request: Continue implementing inspect compare metadata for the Web UI.\n- Latest selected assistant update: I am validating the compare payload shape against the schema draft.\n\n## Important Decisions\n\n- Keep exported `recent_turns.jsonl` lightweight and reserve compare metadata for `inspect --json`.\n- Treat schema files as the canonical draft contract for Web UI consumers.\n- Keep public examples synthetic and safe for a public repository.\n\n## Relevant Files\n\n- `src/aiss/cli.py`: inspect output formatting and JSON payload shape.\n- `docs/schemas/inspect-output.schema.json`: schema contract for inspect payloads.\n- `tests/test_schema_contracts.py`: contract tests for export, inspect, and public fixtures.\n- `docs/examples/public-sync-state/`: public-safe fixture pack for UI development.\n\n## Open Questions\n\n- Should the first Web UI open on latest snapshot summary or inspect compare mode?\n- Should compare view support collapsing trimmed excerpts by default?\n- Do we want a second fixture with `dirty: true` and a patch artifact for UI states?\n\n## Next Steps\n\n1. Build a snapshot summary view from `sample-manifest.json`.\n2. Build a compare timeline from `sample-inspect-output.json`.\n3. Add a handoff reader pane using `sample-handoff.md`.\n4. Wire latest pointer loading using both normal and conflict examples.\n\n## Constraints\n\n- Do not assume native resume support.\n- Do not expose auth files, real transcript paths, or live machine identifiers.\n- Do not require Web UI consumers to reconstruct compare indexes by matching text.\n\n## Verification\n\n- `inspect --json` matches schema.\n- compare indexes are consistent across `all_excerpts` and `excerpts`.\n- public fixtures are validated in `tests/test_schema_contracts.py`.\n"
+  },
+  "patch_replay": {
+    "state": "none",
+    "patch_path": null,
+    "plain_apply_state": "not-applicable",
+    "three_way_state": "not-applicable",
+    "recommended_mode": "none",
+    "recommended_reason": "Latest snapshot does not include a patch artifact, so there is nothing to replay.",
+    "recommended_command": null
   }
 }
