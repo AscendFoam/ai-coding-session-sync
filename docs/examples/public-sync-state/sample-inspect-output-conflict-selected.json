@@ -1,0 +1,192 @@
+{
+  "codex": [
+    {
+      "tool": "codex",
+      "source_kind": "transcript",
+      "session_id": "session-sample-conflict-001",
+      "title": "Patch replay recommendation review",
+      "updated_at": "2026-04-25T08:13:45Z",
+      "cwd": "${PROJECT_ROOT}",
+      "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+      "score": 247,
+      "score_reasons": [
+        "cwd exactly matches project root",
+        "2 user excerpt(s)",
+        "6 assistant excerpt(s)",
+        "goal candidate available",
+        "title available",
+        "updated timestamp available"
+      ],
+      "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+      "excerpt_count": 4,
+      "total_excerpt_count": 8,
+      "total_user_count": 2,
+      "total_assistant_count": 6,
+      "all_excerpts": [
+        {
+          "role": "user",
+          "created_at": "2026-04-25T08:06:00Z",
+          "text": "We need a latest-selection conflict fixture too.",
+          "selected": false,
+          "selected_index": null
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:06:20Z",
+          "text": "I will combine latest conflict and patch replay guidance into one UI bundle.",
+          "selected": false,
+          "selected_index": null
+        },
+        {
+          "role": "user",
+          "created_at": "2026-04-25T08:07:10Z",
+          "text": "Resolve latest selection and review patch replay guidance in one UI flow.",
+          "selected": true,
+          "selected_index": 1
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:07:30Z",
+          "text": "I will recommend the newer Windows snapshot and show branch-first patch replay.",
+          "selected": true,
+          "selected_index": 2
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:08:10Z",
+          "text": "The picker should expose both snapshot ids directly.",
+          "selected": true,
+          "selected_index": 3
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:09:05Z",
+          "text": "The doctor panel should still surface patch replay recommendation even before selection is resolved.",
+          "selected": true,
+          "selected_index": 4
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:11:12Z",
+          "text": "This fixture should let the UI prototype both a picker modal and a replay guidance panel at once.",
+          "selected": false,
+          "selected_index": null
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:13:45Z",
+          "text": "The combined conflict-state bundle is ready for schema validation.",
+          "selected": false,
+          "selected_index": null
+        }
+      ],
+      "excerpts": [
+        {
+          "role": "user",
+          "created_at": "2026-04-25T08:07:10Z",
+          "text": "Resolve latest selection and review patch replay guidance in one UI flow.",
+          "selected_index": 1,
+          "all_excerpt_index": 3
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:07:30Z",
+          "text": "I will recommend the newer Windows snapshot and show branch-first patch replay.",
+          "selected_index": 2,
+          "all_excerpt_index": 4
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:08:10Z",
+          "text": "The picker should expose both snapshot ids directly.",
+          "selected_index": 3,
+          "all_excerpt_index": 5
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:09:05Z",
+          "text": "The doctor panel should still surface patch replay recommendation even before selection is resolved.",
+          "selected_index": 4,
+          "all_excerpt_index": 6
+        }
+      ]
+    },
+    {
+      "tool": "codex",
+      "source_kind": "transcript",
+      "session_id": "session-sample-conflict-002",
+      "title": "Previous Mac snapshot",
+      "updated_at": "2026-04-25T08:00:00Z",
+      "cwd": "${PROJECT_ROOT}",
+      "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict-mac.jsonl",
+      "score": 228,
+      "score_reasons": [
+        "cwd exactly matches project root",
+        "1 user excerpt(s)",
+        "4 assistant excerpt(s)",
+        "goal candidate available",
+        "title available",
+        "updated timestamp available"
+      ],
+      "goal_candidate": "Review the earlier Mac-side export before resolving latest selection.",
+      "excerpt_count": 2,
+      "total_excerpt_count": 5,
+      "total_user_count": 1,
+      "total_assistant_count": 4,
+      "all_excerpts": [
+        {
+          "role": "user",
+          "created_at": "2026-04-25T07:58:00Z",
+          "text": "Review the earlier Mac-side export before resolving latest selection.",
+          "selected": true,
+          "selected_index": 1
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:00:00Z",
+          "text": "The Mac snapshot is still a viable candidate, but it is older and lacks the replay guidance updates.",
+          "selected": true,
+          "selected_index": 2
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:00:20Z",
+          "text": "The UI can render this as a lower-priority candidate in the same picker.",
+          "selected": false,
+          "selected_index": null
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:00:40Z",
+          "text": "Use score and timestamp to explain the recommendation.",
+          "selected": false,
+          "selected_index": null
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:01:00Z",
+          "text": "No patch replay recommendation changes came from this snapshot.",
+          "selected": false,
+          "selected_index": null
+        }
+      ],
+      "excerpts": [
+        {
+          "role": "user",
+          "created_at": "2026-04-25T07:58:00Z",
+          "text": "Review the earlier Mac-side export before resolving latest selection.",
+          "selected_index": 1,
+          "all_excerpt_index": 1
+        },
+        {
+          "role": "assistant",
+          "created_at": "2026-04-25T08:00:00Z",
+          "text": "The Mac snapshot is still a viable candidate, but it is older and lacks the replay guidance updates.",
+          "selected_index": 2,
+          "all_excerpt_index": 2
+        }
+      ]
+    }
+  ],
+  "claude": []
+}

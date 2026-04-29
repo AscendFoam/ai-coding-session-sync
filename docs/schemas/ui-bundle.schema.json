@@ -41,6 +41,9 @@
       "type": "object",
       "description": "Embedded latest pointer payload. Validate this sub-object against latest-pointer.schema.json."
     },
+    "latest_selection": {
+      "$ref": "#/$defs/latestSelection"
+    },
     "manifest": {
       "type": "object",
       "description": "Embedded snapshot manifest. Validate this sub-object against manifest.schema.json."
@@ -98,6 +101,54 @@
         "handoff_path": {
           "type": "string",
           "pattern": "^handoffs/.+\\.md$"
+        }
+      }
+    },
+    "latestSelection": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "active_snapshot_id",
+        "candidates",
+        "recommended_snapshot_id",
+        "recommended_reason"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "resolved",
+            "requires-selection"
+          ]
+        },
+        "active_snapshot_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9._-]+-(all|codex|claude)$"
+          }
+        },
+        "recommended_snapshot_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recommended_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },

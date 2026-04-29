@@ -48,15 +48,14 @@ class SchemaContractTest(unittest.TestCase):
         entry = payload["entry"]
         manifest = payload["manifest"]
         latest = payload["latest"]
+        latest_selection = payload.get("latest_selection")
         inspect = payload["inspect"]
         handoff = payload["handoff"]
         patch_replay = payload["patch_replay"]
         manifest_context = manifest["source"]["contexts"][0]
         active_context = inspect[entry["active_tool"]][0]
 
-        self.assertEqual(entry["snapshot_id"], latest["snapshot_id"])
         self.assertEqual(entry["snapshot_id"], manifest["snapshot_id"])
-        self.assertEqual(latest["manifest"], f"manifests/{manifest['snapshot_id']}.json")
         self.assertEqual(entry["project_id"], manifest["project"]["id"])
         self.assertEqual(entry["active_tool"], manifest["source"]["tool"])
         self.assertEqual(set(entry["available_tools"]), set(inspect))
@@ -70,6 +69,31 @@ class SchemaContractTest(unittest.TestCase):
         self.assertEqual(active_context["goal_candidate"], manifest_context["goal_candidate"])
         self.assertIn(handoff["title"], handoff["markdown"])
         self.assertIn(handoff["current_goal"], handoff["markdown"])
+
+        if "snapshot_id" in latest:
+            self.assertEqual(entry["snapshot_id"], latest["snapshot_id"])
+            self.assertEqual(latest["manifest"], f"manifests/{manifest['snapshot_id']}.json")
+        else:
+            self.assertTrue(latest["requires_selection"])
+            self.assertIn(entry["snapshot_id"], latest["candidates"])
+
+        if latest_selection is not None:
+            if latest_selection["state"] == "resolved":
+                self.assertIn("snapshot_id", latest)
+                self.assertEqual(latest_selection["active_snapshot_id"], latest["snapshot_id"])
+                self.assertEqual(latest_selection["recommended_snapshot_id"], latest["snapshot_id"])
+                self.assertIn(latest_selection["active_snapshot_id"], latest_selection["candidates"])
+            else:
+                self.assertIn("candidates", latest)
+                self.assertTrue(latest["requires_selection"])
+                self.assertIsNone(latest_selection["active_snapshot_id"])
+                self.assertEqual(latest_selection["candidates"], latest["candidates"])
+                self.assertIn(entry["snapshot_id"], latest_selection["candidates"])
+                self.assertEqual(latest_selection["recommended_snapshot_id"], entry["snapshot_id"])
+            if latest_selection["recommended_snapshot_id"] is not None:
+                self.assertIn(latest_selection["recommended_snapshot_id"], latest_selection["candidates"])
+                self.assertTrue(latest_selection["recommended_reason"])
+
         self.assertIn(patch_replay["recommended_mode"], {"apply", "3way", "branch", "none", None})
         if manifest["artifacts"]["patch"] is None:
             self.assertEqual(patch_replay["state"], "none")
@@ -358,6 +382,28 @@ class SchemaContractTest(unittest.TestCase):
         self.assertTrue(payload["redaction"]["warnings"])
         self.assertGreater(len(payload["source"]["contexts"]), 1)
 
+    def test_public_conflict_selected_manifest_fixture_matches_schema(self) -> None:
+        payload = json.loads(
+            (self.public_examples_dir / "sample-manifest-conflict-selected.json").read_text(encoding="utf-8")
+        )
+        assert_matches_schema(payload, self.manifest_schema)
+
+        self.assertEqual(payload["source"]["tool"], "codex")
+        self.assertFalse(payload["project"]["dirty"])
+        self.assertTrue(payload["artifacts"]["patch"])
+        self.assertTrue(payload["redaction"]["warnings"])
+
+    def test_public_dirty_selected_manifest_fixture_matches_schema(self) -> None:
+        payload = json.loads(
+            (self.public_examples_dir / "sample-manifest-dirty-selected.json").read_text(encoding="utf-8")
+        )
+        assert_matches_schema(payload, self.manifest_schema)
+
+        self.assertEqual(payload["source"]["tool"], "claude")
+        self.assertTrue(payload["project"]["dirty"])
+        self.assertTrue(payload["artifacts"]["patch"])
+        self.assertTrue(payload["redaction"]["warnings"])
+
     def test_public_dirty_inspect_fixture_matches_schema_and_compare_indexes_are_consistent(self) -> None:
         payload = json.loads((self.public_examples_dir / "sample-inspect-output-dirty.json").read_text(encoding="utf-8"))
         assert_matches_schema(payload, self.inspect_schema)
@@ -365,27 +411,86 @@ class SchemaContractTest(unittest.TestCase):
 
         self.assertTrue(any(not excerpt["selected"] for excerpt in payload["claude"][0]["all_excerpts"]))
 
+    def test_public_conflict_selected_inspect_fixture_matches_schema_and_compare_indexes_are_consistent(self) -> None:
+        payload = json.loads(
+            (self.public_examples_dir / "sample-inspect-output-conflict-selected.json").read_text(encoding="utf-8")
+        )
+        assert_matches_schema(payload, self.inspect_schema)
+        self._assert_compare_indexes_consistent(payload)
+
+        self.assertEqual(payload["claude"], [])
+        self.assertGreater(len(payload["codex"]), 1)
+        self.assertEqual(payload["codex"][0]["session_id"], "session-sample-conflict-001")
+
+    def test_public_dirty_selected_inspect_fixture_matches_schema_and_compare_indexes_are_consistent(self) -> None:
+        payload = json.loads(
+            (self.public_examples_dir / "sample-inspect-output-dirty-selected.json").read_text(encoding="utf-8")
+        )
+        assert_matches_schema(payload, self.inspect_schema)
+        self._assert_compare_indexes_consistent(payload)
+
+        self.assertNotIn("codex", payload)
+        self.assertEqual(len(payload["claude"]), 1)
+        self.assertEqual(payload["claude"][0]["session_id"], "session-sample-claude-002")
+
     def test_public_ui_bundle_fixture_matches_schema_and_embedded_contracts(self) -> None:
         payload = json.loads((self.public_examples_dir / "sample-ui-bundle.json").read_text(encoding="utf-8"))
         self._assert_ui_bundle_contracts(payload)
+        handoff = (self.public_examples_dir / "sample-handoff.md").read_text(encoding="utf-8")
+        self.assertEqual(payload["handoff"]["markdown"], handoff)
 
     def test_public_dirty_ui_bundle_fixture_matches_schema_and_embedded_contracts(self) -> None:
         payload = json.loads((self.public_examples_dir / "sample-ui-bundle-dirty.json").read_text(encoding="utf-8"))
         self._assert_ui_bundle_contracts(payload)
+        handoff = (self.public_examples_dir / "sample-handoff-dirty.md").read_text(encoding="utf-8")
+        manifest = json.loads(
+            (self.public_examples_dir / "sample-manifest-dirty-selected.json").read_text(encoding="utf-8")
+        )
+        inspect = json.loads(
+            (self.public_examples_dir / "sample-inspect-output-dirty-selected.json").read_text(encoding="utf-8")
+        )
 
-        manifest = payload["manifest"]
-        inspect = payload["inspect"]
+        bundle_manifest = payload["manifest"]
+        bundle_inspect = payload["inspect"]
 
-        self.assertTrue(manifest["project"]["dirty"])
-        self.assertTrue(manifest["artifacts"]["patch"])
-        self.assertTrue(manifest["redaction"]["warnings"])
-        self.assertGreater(len(manifest["source"]["contexts"]), 1)
+        self.assertTrue(bundle_manifest["project"]["dirty"])
+        self.assertTrue(bundle_manifest["artifacts"]["patch"])
+        self.assertTrue(bundle_manifest["redaction"]["warnings"])
+        self.assertGreater(len(bundle_manifest["source"]["contexts"]), 1)
         self.assertEqual(payload["entry"]["active_tool"], "claude")
         self.assertEqual(payload["entry"]["available_tools"], ["claude"])
-        self.assertTrue(any(not excerpt["selected"] for excerpt in inspect["claude"][0]["all_excerpts"]))
+        self.assertTrue(any(not excerpt["selected"] for excerpt in bundle_inspect["claude"][0]["all_excerpts"]))
         self.assertEqual(payload["patch_replay"]["state"], "blocked")
         self.assertEqual(payload["patch_replay"]["recommended_mode"], "branch")
         self.assertEqual(payload["patch_replay"]["three_way_state"], "conflicts")
+        self.assertEqual(payload["handoff"]["markdown"], handoff)
+        self.assertEqual(payload["manifest"], manifest)
+        self.assertEqual(payload["inspect"], inspect)
+
+    def test_public_conflict_ui_bundle_fixture_matches_schema_and_embedded_contracts(self) -> None:
+        payload = json.loads((self.public_examples_dir / "sample-ui-bundle-conflict.json").read_text(encoding="utf-8"))
+        self._assert_ui_bundle_contracts(payload)
+        handoff = (self.public_examples_dir / "sample-handoff-conflict.md").read_text(encoding="utf-8")
+        manifest = json.loads(
+            (self.public_examples_dir / "sample-manifest-conflict-selected.json").read_text(encoding="utf-8")
+        )
+        inspect = json.loads(
+            (self.public_examples_dir / "sample-inspect-output-conflict-selected.json").read_text(encoding="utf-8")
+        )
+
+        self.assertTrue(payload["latest"]["requires_selection"])
+        self.assertEqual(payload["latest_selection"]["state"], "requires-selection")
+        self.assertIsNone(payload["latest_selection"]["active_snapshot_id"])
+        self.assertGreater(len(payload["latest_selection"]["candidates"]), 1)
+        self.assertEqual(payload["patch_replay"]["recommended_mode"], "branch")
+        self.assertEqual(payload["patch_replay"]["three_way_state"], "conflicts")
+        self.assertEqual(payload["handoff"]["markdown"], handoff)
+        self.assertEqual(payload["manifest"], manifest)
+        self.assertEqual(payload["inspect"], inspect)
+        self.assertEqual(
+            payload["latest_selection"]["recommended_snapshot_id"],
+            payload["manifest"]["snapshot_id"],
+        )
 
 
 if __name__ == "__main__":

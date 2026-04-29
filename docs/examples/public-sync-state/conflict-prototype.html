@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Session Sync Fixture Prototype</title>
+    <link rel="stylesheet" href="./conflict-prototype.css">
+    <script type="module" src="./conflict-prototype.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">AI Coding Session Sync</div>
+          <h1 id="pageTitle">Fixture Prototype</h1>
+        </div>
+        <div class="toolbar" aria-label="Data loading mode">
+          <div class="segmented-control segmented-control-wide" role="tablist" aria-label="Scenario">
+            <button id="scenarioConflictButton" class="segment" type="button" role="tab" aria-selected="false">
+              Conflict
+            </button>
+            <button id="scenarioDirtyButton" class="segment" type="button" role="tab" aria-selected="false">
+              Dirty
+            </button>
+          </div>
+          <div class="segmented-control" role="tablist" aria-label="Loading mode">
+            <button id="modeBundleButton" class="segment" type="button" role="tab" aria-selected="false">
+              Bundle
+            </button>
+            <button id="modeSplitButton" class="segment" type="button" role="tab" aria-selected="false">
+              Split Files
+            </button>
+          </div>
+          <button id="reloadButton" class="command-button" type="button">Reload</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="surface">
+          <div class="section-header">
+            <div>
+              <div class="section-eyebrow">Contract Path</div>
+              <h2>Data Source</h2>
+            </div>
+          </div>
+          <div id="dataSourcePanel" class="data-source-grid"></div>
+        </section>
+
+        <section class="surface">
+          <div class="section-header">
+            <div>
+              <div class="section-eyebrow">Runtime</div>
+              <h2>Status</h2>
+            </div>
+            <div id="statusBanner" class="status-banner" aria-live="polite"></div>
+          </div>
+          <div id="summaryGrid" class="summary-grid"></div>
+          <div id="sourceList" class="source-list"></div>
+        </section>
+
+        <section class="surface">
+          <div class="section-header">
+            <div>
+              <div class="section-eyebrow">Latest</div>
+              <h2 id="latestSectionTitle">Selection State</h2>
+            </div>
+          </div>
+          <div id="latestSelectionPanel" class="candidate-grid"></div>
+        </section>
+
+        <section class="surface two-column-surface">
+          <div>
+            <div class="section-header">
+              <div>
+                <div class="section-eyebrow">Snapshot</div>
+                <h2>Loaded Detail</h2>
+              </div>
+            </div>
+            <div id="manifestPanel"></div>
+          </div>
+          <div>
+            <div class="section-header">
+              <div>
+                <div class="section-eyebrow">Replay</div>
+                <h2>Patch Guidance</h2>
+              </div>
+            </div>
+            <div id="patchReplayPanel"></div>
+          </div>
+        </section>
+
+        <section class="surface two-column-surface">
+          <div>
+            <div class="section-header">
+              <div>
+                <div class="section-eyebrow">Provenance</div>
+                <h2>Source Contexts</h2>
+              </div>
+            </div>
+            <div id="contextsPanel" class="stack"></div>
+          </div>
+          <div>
+            <div class="section-header">
+              <div>
+                <div class="section-eyebrow">Handoff</div>
+                <h2>Operator Narrative</h2>
+              </div>
+            </div>
+            <article id="handoffPanel" class="handoff-panel"></article>
+          </div>
+        </section>
+
+        <section class="surface">
+          <div class="section-header">
+            <div>
+              <div class="section-eyebrow">Compare</div>
+              <h2>Timeline</h2>
+            </div>
+          </div>
+          <div class="compare-grid">
+            <div>
+              <div class="panel-title">Selected Window</div>
+              <div id="selectedExcerptsPanel" class="stack"></div>
+            </div>
+            <div>
+              <div class="panel-title">All Excerpts</div>
+              <div id="timelinePanel" class="stack"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,62 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot_id": "20260425T081500Z-sample-windows-codex",
+  "created_at": "2026-04-25T08:15:00+00:00",
+  "project": {
+    "id": "sample-project",
+    "root_hint": ".",
+    "git_remote": "https://example.com/org/sample-project.git",
+    "branch": "feature/import-safety",
+    "head": "fedcba9",
+    "dirty": false
+  },
+  "source": {
+    "tool": "codex",
+    "tool_version": "unknown",
+    "provider_profile": "local",
+    "device_id": "sample-windows",
+    "contexts": [
+      {
+        "tool": "codex",
+        "source_kind": "transcript",
+        "session_id": "session-sample-conflict-001",
+        "title": "Patch replay recommendation review",
+        "updated_at": "2026-04-25T08:13:45Z",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+        "excerpt_count": 4,
+        "total_excerpt_count": 8,
+        "total_user_count": 2,
+        "total_assistant_count": 6,
+        "score": 247,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "6 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow."
+      }
+    ]
+  },
+  "artifacts": {
+    "handoff": "handoffs/20260425T081500Z-sample-windows-codex.md",
+    "recent_turns": "excerpts/20260425T081500Z-sample-windows-codex.jsonl",
+    "patch": "patches/20260425T081500Z-sample-windows-codex.patch",
+    "native": []
+  },
+  "redaction": {
+    "enabled": true,
+    "ruleset": "default",
+    "warnings": [
+      "latest pointer requires selection",
+      "contains patch artifact reference",
+      "contains replay recommendation metadata"
+    ]
+  },
+  "compatibility": {
+    "import_strategy": "handoff",
+    "native_resume_supported": "unknown"
+  }
+}

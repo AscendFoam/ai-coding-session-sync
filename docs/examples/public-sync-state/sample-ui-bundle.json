@@ -16,6 +16,15 @@
     "snapshot_id": "20260425T080000Z-sample-macbook-codex",
     "manifest": "manifests/20260425T080000Z-sample-macbook-codex.json"
   },
+  "latest_selection": {
+    "state": "resolved",
+    "active_snapshot_id": "20260425T080000Z-sample-macbook-codex",
+    "candidates": [
+      "20260425T080000Z-sample-macbook-codex"
+    ],
+    "recommended_snapshot_id": "20260425T080000Z-sample-macbook-codex",
+    "recommended_reason": "Only one latest snapshot is active, so no operator selection is needed."
+  },
   "manifest": {
     "schema_version": "0.1.0",
     "snapshot_id": "20260425T080000Z-sample-macbook-codex",

@@ -58,6 +58,34 @@ Current draft policy:
 - compatibility goal: additive changes should remain backward compatible for UI consumers
 - stability scope: field names documented in these schema files should be treated as the canonical draft contract
 
+## Consumer Provenance Terms
+
+To keep protocol discussions aligned with frontend consumption, this draft also uses three provenance terms for contract interpretation:
+
+- `source-of-truth`
+- `derived`
+- `missing`
+
+These terms describe how a consumer should treat a value after loading one or more protocol artifacts. They are consumer semantics, not current schema fields.
+
+Definitions:
+
+- `source-of-truth`: the value is present directly in a checked-in artifact or payload and should be treated as contract data.
+- `derived`: the value is synthesized by the consumer to normalize bundle-mode and split-file rendering, but it is not yet guaranteed as backend contract data.
+- `missing`: the aggregate is intentionally absent from the loaded artifacts, and the consumer should surface that absence instead of silently inventing it.
+
+Recommended rule of thumb:
+
+- treat `manifest`, `inspect`, `latest`, `handoff.markdown`, and bundle-provided `patch_replay` as `source-of-truth`;
+- treat split-mode convenience joins such as synthesized `latest_selection` or synthesized `handoff.summary` as `derived`;
+- treat intentionally absent aggregates, such as split-mode `patch_replay`, as `missing`.
+
+Current scope note:
+
+- these terms help consumers, docs, and prototype UIs talk about the same payloads with the same vocabulary;
+- they do not currently appear as required fields in `manifest.schema.json`, `inspect-output.schema.json`, or `latest-pointer.schema.json`;
+- future backend payloads may promote some currently `derived` values into `source-of-truth` fields.
+
 ## Manifest
 
 The manifest is the authoritative index for one snapshot.
