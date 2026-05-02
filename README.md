@@ -67,10 +67,29 @@ Implemented now:
 - handoff generation
 - optional Git patch export
 
-Run the current smoke test suite with:
+Run the current repository-level regression entrypoints with:
 
 ```bash
-PYTHONPATH=src python -m unittest -v
+npm run test:fast
+npm run test:contracts
+npm run test:desktop
+npm run test:python
+npm run test:web
+npm run test:all
+```
+
+- `test:fast`: lightweight smoke + schema/fixture contract coverage, no browser
+- `test:contracts`: schema + fixture contract coverage only
+- `test:desktop`: desktop catalog/API/schema slice, no browser
+- `test:python`: current backend/API regression slice
+- `test:web`: Playwright browser regression for the desktop workbench
+- `test:all`: backend/API regression plus browser regression
+
+If you want the lower-level commands directly:
+
+```bash
+PYTHONPATH=src python -m unittest -v tests.test_web_smoke tests.test_api_server tests.test_api tests.test_catalog
+cd apps/web && npm run test:e2e
 ```
 
 Not implemented yet:

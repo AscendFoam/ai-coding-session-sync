@@ -1,0 +1,327 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2026-04-29T10:00:00Z",
+  "session": {
+    "session_key": "codex:transcript:session-sample-conflict-001",
+    "tool": "codex",
+    "source_kind": "transcript",
+    "native_session_id": "session-sample-conflict-001",
+    "title": "Patch replay recommendation review",
+    "native_title": "Patch replay recommendation review",
+    "project_id": "sample-project",
+    "project_label": "sample-project",
+    "updated_at": "2026-04-25T08:13:45Z",
+    "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+    "cwd": "${PROJECT_ROOT}",
+    "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+    "score": 247,
+    "score_reasons": [
+      "cwd exactly matches project root",
+      "2 user excerpt(s)",
+      "6 assistant excerpt(s)",
+      "goal candidate available",
+      "title available",
+      "updated timestamp available"
+    ],
+    "excerpt_count": 4,
+    "total_excerpt_count": 8,
+    "total_user_count": 2,
+    "total_assistant_count": 6,
+    "raw_message_count": 8,
+    "selected_excerpt_count": 4,
+    "all_excerpt_count": 8,
+    "device_id": "sample-windows",
+    "provider_profile": "local",
+    "latest_state": "conflict",
+    "latest_snapshot_id": null,
+    "latest_candidates": [
+      "20260425T080000Z-sample-macbook-codex",
+      "20260425T081500Z-sample-windows-codex"
+    ],
+    "has_handoff": true,
+    "has_patch": true,
+    "patch_replay_state": "ready",
+    "status_flags": [
+      "conflict",
+      "patch"
+    ]
+  },
+  "manifest": {
+    "schema_version": "0.1.0",
+    "snapshot_id": "20260425T081500Z-sample-windows-codex",
+    "created_at": "2026-04-25T08:15:00+00:00",
+    "project": {
+      "id": "sample-project",
+      "root_hint": ".",
+      "git_remote": "https://example.com/org/sample-project.git",
+      "branch": "feature/import-safety",
+      "head": "fedcba9",
+      "dirty": false
+    },
+    "source": {
+      "tool": "codex",
+      "tool_version": "unknown",
+      "provider_profile": "local",
+      "device_id": "sample-windows",
+      "contexts": [
+        {
+          "tool": "codex",
+          "source_kind": "transcript",
+          "session_id": "session-sample-conflict-001",
+          "title": "Patch replay recommendation review",
+          "updated_at": "2026-04-25T08:13:45Z",
+          "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+          "excerpt_count": 4,
+          "total_excerpt_count": 8,
+          "total_user_count": 2,
+          "total_assistant_count": 6,
+          "score": 247,
+          "score_reasons": [
+            "cwd exactly matches project root",
+            "2 user excerpt(s)",
+            "6 assistant excerpt(s)",
+            "goal candidate available",
+            "title available",
+            "updated timestamp available"
+          ],
+          "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow."
+        }
+      ]
+    },
+    "artifacts": {
+      "handoff": "handoffs/20260425T081500Z-sample-windows-codex.md",
+      "recent_turns": "excerpts/20260425T081500Z-sample-windows-codex.jsonl",
+      "patch": "patches/20260425T081500Z-sample-windows-codex.patch",
+      "native": []
+    },
+    "redaction": {
+      "enabled": true,
+      "ruleset": "default",
+      "warnings": [
+        "latest pointer requires selection",
+        "contains patch artifact reference",
+        "contains replay recommendation metadata"
+      ]
+    },
+    "compatibility": {
+      "import_strategy": "handoff",
+      "native_resume_supported": "unknown"
+    }
+  },
+  "inspect": {
+    "codex": [
+      {
+        "tool": "codex",
+        "source_kind": "transcript",
+        "session_id": "session-sample-conflict-001",
+        "title": "Patch replay recommendation review",
+        "updated_at": "2026-04-25T08:13:45Z",
+        "cwd": "${PROJECT_ROOT}",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+        "score": 247,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "6 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+        "excerpt_count": 4,
+        "total_excerpt_count": 8,
+        "total_user_count": 2,
+        "total_assistant_count": 6,
+        "all_excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:06:00Z",
+            "text": "We need a latest-selection conflict fixture too.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:06:20Z",
+            "text": "I will combine latest conflict and patch replay guidance into one UI bundle.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:07:10Z",
+            "text": "Resolve latest selection and review patch replay guidance in one UI flow.",
+            "selected": true,
+            "selected_index": 1
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:30Z",
+            "text": "I will recommend the newer Windows snapshot and show branch-first patch replay.",
+            "selected": true,
+            "selected_index": 2
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:08:10Z",
+            "text": "The picker should expose both snapshot ids directly.",
+            "selected": true,
+            "selected_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:09:05Z",
+            "text": "The doctor panel should still surface patch replay recommendation even before selection is resolved.",
+            "selected": true,
+            "selected_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:11:12Z",
+            "text": "This fixture should let the UI prototype both a picker modal and a replay guidance panel at once.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:13:45Z",
+            "text": "The combined conflict-state bundle is ready for schema validation.",
+            "selected": false,
+            "selected_index": null
+          }
+        ],
+        "excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T08:07:10Z",
+            "text": "Resolve latest selection and review patch replay guidance in one UI flow.",
+            "selected_index": 1,
+            "all_excerpt_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:07:30Z",
+            "text": "I will recommend the newer Windows snapshot and show branch-first patch replay.",
+            "selected_index": 2,
+            "all_excerpt_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:08:10Z",
+            "text": "The picker should expose both snapshot ids directly.",
+            "selected_index": 3,
+            "all_excerpt_index": 5
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:09:05Z",
+            "text": "The doctor panel should still surface patch replay recommendation even before selection is resolved.",
+            "selected_index": 4,
+            "all_excerpt_index": 6
+          }
+        ]
+      },
+      {
+        "tool": "codex",
+        "source_kind": "transcript",
+        "session_id": "session-sample-conflict-002",
+        "title": "Previous Mac snapshot",
+        "updated_at": "2026-04-25T08:00:00Z",
+        "cwd": "${PROJECT_ROOT}",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict-mac.jsonl",
+        "score": 228,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "1 user excerpt(s)",
+          "4 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Review the earlier Mac-side export before resolving latest selection.",
+        "excerpt_count": 2,
+        "total_excerpt_count": 5,
+        "total_user_count": 1,
+        "total_assistant_count": 4,
+        "all_excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T07:58:00Z",
+            "text": "Review the earlier Mac-side export before resolving latest selection.",
+            "selected": true,
+            "selected_index": 1
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:00:00Z",
+            "text": "The Mac snapshot is still a viable candidate, but it is older and lacks the replay guidance updates.",
+            "selected": true,
+            "selected_index": 2
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:00:20Z",
+            "text": "The UI can render this as a lower-priority candidate in the same picker.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:00:40Z",
+            "text": "Use score and timestamp to explain the recommendation.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:01:00Z",
+            "text": "No patch replay recommendation changes came from this snapshot.",
+            "selected": false,
+            "selected_index": null
+          }
+        ],
+        "excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T07:58:00Z",
+            "text": "Review the earlier Mac-side export before resolving latest selection.",
+            "selected_index": 1,
+            "all_excerpt_index": 1
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T08:00:00Z",
+            "text": "The Mac snapshot is still a viable candidate, but it is older and lacks the replay guidance updates.",
+            "selected_index": 2,
+            "all_excerpt_index": 2
+          }
+        ]
+      }
+    ]
+  },
+  "handoff": {
+    "path": "handoffs/20260425T081500Z-sample-windows-codex.md",
+    "format": "markdown",
+    "title": "Session Handoff",
+    "updated_at": "2026-04-25T08:15:00+00:00",
+    "current_goal": "Resolve latest selection and review patch replay guidance in one UI flow.",
+    "summary": "Codex snapshot focused on a combined conflict-state UI: latest pointer selection, patch replay recommendation, and ranked provenance comparison.",
+    "markdown": "# Session Handoff\n\n## Current Goal\n\nResolve latest selection and review patch replay guidance in one UI flow.\n\n## Project State\n\n- Tool: codex\n- Repository: https://example.com/org/sample-project.git\n- Branch: feature/import-safety\n- HEAD: fedcba9\n- Dirty worktree: False\n- Patch: patches/20260425T081500Z-sample-windows-codex.patch\n\n## Completed Work\n\n- Prepared a synthetic latest-selection conflict with two candidate snapshots.\n- Added a combined UI bundle that still includes patch replay guidance for the recommended snapshot.\n- Kept candidate provenance and compare timeline data in the same payload.\n\n## Recent Context Summary\n\n- Latest selected user request: Resolve latest selection and review patch replay guidance in one UI flow.\n- Latest selected assistant update: The doctor panel should still surface patch replay recommendation even before selection is resolved.\n\n## Important Decisions\n\n- Keep `latest_selection` as structured UI data instead of making the frontend parse the latest pointer object directly.\n- Recommend the newer Windows snapshot while still exposing the older Mac candidate.\n- Keep patch replay guidance visible even when latest selection is unresolved.\n\n## Relevant Files\n\n- `docs/examples/public-sync-state/sample-latest-conflict.json`: standalone latest conflict fixture.\n- `docs/examples/public-sync-state/sample-ui-bundle-conflict.json`: combined latest conflict and patch replay bundle.\n- `docs/schemas/ui-bundle.schema.json`: UI bundle contract.\n- `tests/test_schema_contracts.py`: embedded schema and consistency checks.\n\n## Open Questions\n\n- Should the UI block the replay panel until selection is confirmed, or show a preview recommendation immediately?\n- Should the picker default to the recommended snapshot or stay fully neutral?\n- Should the compare view switch candidates inline from the same page?\n\n## Next Steps\n\n1. Render a latest-selection picker from `latest_selection`.\n2. Show recommendation reasoning near the suggested snapshot.\n3. Render the patch replay panel from `patch_replay` below the picker.\n4. Keep inspect candidate comparison visible so the operator can justify the choice.\n\n## Constraints\n\n- Do not treat the recommended snapshot as auto-resolved; the conflict still needs an explicit operator choice.\n- Do not hide lower-ranked candidates.\n- Do not require multi-file loading before the UI can render this dual-state prototype.\n\n## Verification\n\n- Embedded latest conflict matches the latest-pointer schema.\n- Embedded manifest matches the manifest schema.\n- Embedded inspect output matches the inspect schema.\n- `latest_selection` and `patch_replay` are intentionally redundant UI aggregates.\n"
+  },
+  "patch_replay": {
+    "state": "ready",
+    "patch_path": "patches/20260425T081500Z-sample-windows-codex.patch",
+    "plain_apply_state": "failed",
+    "three_way_state": "conflicts",
+    "recommended_mode": "branch",
+    "recommended_reason": "3-way replay is possible, but it is likely to need conflict resolution, so isolating it on a temporary branch is safer.",
+    "recommended_command": "aiss import --tool codex --snapshot 20260425T081500Z-sample-windows-codex --apply-patch --patch-mode branch --patch-branch aiss/import-20260425t081500z-sample-windows-codex"
+  },
+  "provenance": {
+    "session": "derived",
+    "manifest": "source-of-truth",
+    "inspect": "source-of-truth",
+    "handoff": "source-of-truth",
+    "patch_replay": "source-of-truth"
+  }
+}

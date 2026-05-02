@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-coding-session-sync.local/schemas/session-detail.schema.json",
+  "title": "AISS Desktop Session Detail",
+  "description": "Draft schema for the desktop session-detail payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "session",
+    "manifest",
+    "inspect",
+    "handoff",
+    "patch_replay",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "examples": [
+        "0.1.0"
+      ]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session": {
+      "$ref": "#/$defs/session"
+    },
+    "manifest": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "inspect": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "handoff": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "format",
+        "title",
+        "updated_at",
+        "current_goal",
+        "summary",
+        "markdown"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^handoffs/.+\\.md$"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "markdown"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "current_goal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "markdown": {
+          "type": "string"
+        }
+      }
+    },
+    "patch_replay": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "plain_apply_state",
+        "three_way_state",
+        "recommended_mode",
+        "recommended_reason",
+        "recommended_command"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/patchReplayState"
+        },
+        "patch_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "plain_apply_state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "failed",
+            "unavailable",
+            "not-applicable"
+          ]
+        },
+        "three_way_state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "conflicts",
+            "failed",
+            "unavailable",
+            "not-applicable"
+          ]
+        },
+        "recommended_mode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "apply",
+            "3way",
+            "branch",
+            "none",
+            null
+          ]
+        },
+        "recommended_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recommended_command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "codex",
+        "claude"
+      ]
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9._-]+-(all|codex|claude)$"
+    },
+    "latestState": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "conflict",
+        "missing",
+        "not-applicable"
+      ]
+    },
+    "patchReplayState": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "blocked",
+        "missing",
+        "unavailable",
+        "none",
+        "not-applicable"
+      ]
+    },
+    "provenanceState": {
+      "type": "string",
+      "enum": [
+        "source-of-truth",
+        "derived",
+        "missing"
+      ]
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_key",
+        "tool",
+        "source_kind",
+        "native_session_id",
+        "title",
+        "native_title",
+        "project_id",
+        "project_label",
+        "updated_at",
+        "transcript_path",
+        "cwd",
+        "goal_candidate",
+        "score",
+        "score_reasons",
+        "excerpt_count",
+        "total_excerpt_count",
+        "total_user_count",
+        "total_assistant_count",
+        "raw_message_count",
+        "selected_excerpt_count",
+        "all_excerpt_count",
+        "device_id",
+        "provider_profile",
+        "latest_state",
+        "latest_snapshot_id",
+        "latest_candidates",
+        "has_handoff",
+        "has_patch",
+        "patch_replay_state",
+        "status_flags"
+      ],
+      "properties": {
+        "session_key": {
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/tool"
+        },
+        "source_kind": {
+          "type": "string"
+        },
+        "native_session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "native_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "transcript_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cwd": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "goal_candidate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "score": {
+          "type": "integer"
+        },
+        "score_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_user_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_assistant_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "raw_message_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "all_excerpt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "device_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latest_state": {
+          "$ref": "#/$defs/latestState"
+        },
+        "latest_snapshot_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9._-]+-(all|codex|claude)$"
+        },
+        "latest_candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/snapshotId"
+          }
+        },
+        "has_handoff": {
+          "type": "boolean"
+        },
+        "has_patch": {
+          "type": "boolean"
+        },
+        "patch_replay_state": {
+          "$ref": "#/$defs/patchReplayState"
+        },
+        "status_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "manifest",
+        "inspect",
+        "handoff",
+        "patch_replay"
+      ],
+      "properties": {
+        "session": {
+          "$ref": "#/$defs/provenanceState"
+        },
+        "manifest": {
+          "$ref": "#/$defs/provenanceState"
+        },
+        "inspect": {
+          "$ref": "#/$defs/provenanceState"
+        },
+        "handoff": {
+          "$ref": "#/$defs/provenanceState"
+        },
+        "patch_replay": {
+          "$ref": "#/$defs/provenanceState"
+        }
+      }
+    }
+  }
+}

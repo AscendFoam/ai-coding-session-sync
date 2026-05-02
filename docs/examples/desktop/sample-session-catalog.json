@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2026-04-29T10:00:00Z",
+  "sessions": [
+    {
+      "session_key": "codex:transcript:session-sample-001",
+      "tool": "codex",
+      "source_kind": "transcript",
+      "native_session_id": "session-sample-001",
+      "title": "Implement compare inspector",
+      "native_title": "Implement compare inspector",
+      "project_id": "sample-project",
+      "project_label": "sample-project",
+      "updated_at": "2026-04-25T07:58:30Z",
+      "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-sample.jsonl",
+      "cwd": "${PROJECT_ROOT}",
+      "score": 243,
+      "score_reasons": [
+        "cwd exactly matches project root",
+        "2 user excerpt(s)",
+        "7 assistant excerpt(s)",
+        "goal candidate available",
+        "title available",
+        "updated timestamp available"
+      ],
+      "goal_candidate": "Continue implementing inspect compare metadata for the Web UI.",
+      "excerpt_count": 4,
+      "total_excerpt_count": 9,
+      "total_user_count": 2,
+      "total_assistant_count": 7,
+      "latest_state": "ready",
+      "latest_snapshot_id": "20260425T080000Z-sample-macbook-codex",
+      "has_handoff": true,
+      "has_patch": false,
+      "patch_replay_state": "none",
+      "status_flags": []
+    },
+    {
+      "session_key": "claude:transcript:session-sample-claude-002",
+      "tool": "claude",
+      "source_kind": "transcript",
+      "native_session_id": "session-sample-claude-002",
+      "title": "Refine compare fixture coverage",
+      "native_title": "Refine compare fixture coverage",
+      "project_id": "sample-project",
+      "project_label": "sample-project",
+      "updated_at": "2026-04-25T08:13:10Z",
+      "transcript_path": "${PROJECT_ROOT}/.fixtures/claude/session-compare.jsonl",
+      "cwd": "${PROJECT_ROOT}",
+      "score": 251,
+      "score_reasons": [
+        "cwd exactly matches project root",
+        "2 user excerpt(s)",
+        "9 assistant excerpt(s)",
+        "goal candidate available",
+        "title available",
+        "updated timestamp available"
+      ],
+      "goal_candidate": "Cover dirty, patch, and warning states in the Web UI.",
+      "excerpt_count": 5,
+      "total_excerpt_count": 11,
+      "total_user_count": 2,
+      "total_assistant_count": 9,
+      "latest_state": "ready",
+      "latest_snapshot_id": "20260425T081500Z-sample-windows-claude",
+      "has_handoff": true,
+      "has_patch": true,
+      "patch_replay_state": "blocked",
+      "status_flags": [
+        "dirty",
+        "patch",
+        "warning"
+      ]
+    },
+    {
+      "session_key": "codex:transcript:session-sample-conflict-001",
+      "tool": "codex",
+      "source_kind": "transcript",
+      "native_session_id": "session-sample-conflict-001",
+      "title": "Patch replay recommendation review",
+      "native_title": "Patch replay recommendation review",
+      "project_id": "sample-project",
+      "project_label": "sample-project",
+      "updated_at": "2026-04-25T08:13:45Z",
+      "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-conflict.jsonl",
+      "cwd": "${PROJECT_ROOT}",
+      "score": 247,
+      "score_reasons": [
+        "cwd exactly matches project root",
+        "2 user excerpt(s)",
+        "6 assistant excerpt(s)",
+        "goal candidate available",
+        "title available",
+        "updated timestamp available"
+      ],
+      "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+      "excerpt_count": 4,
+      "total_excerpt_count": 8,
+      "total_user_count": 2,
+      "total_assistant_count": 6,
+      "latest_state": "conflict",
+      "latest_snapshot_id": null,
+      "has_handoff": true,
+      "has_patch": true,
+      "patch_replay_state": "ready",
+      "status_flags": [
+        "conflict",
+        "patch"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "sample-project",
+      "display_name": "sample-project",
+      "session_count": 3,
+      "tool_counts": {
+        "codex": 2,
+        "claude": 1
+      },
+      "latest_updated_at": "2026-04-25T08:16:45Z",
+      "roots": [
+        "${PROJECT_ROOT}"
+      ]
+    }
+  ],
+  "summary": {
+    "total_sessions": 3,
+    "total_projects": 1,
+    "tool_counts": {
+      "codex": 2,
+      "claude": 1
+    },
+    "status_counts": {
+      "dirty": 1,
+      "patch": 2,
+      "conflict": 1,
+      "warning": 1
+    }
+  }
+}

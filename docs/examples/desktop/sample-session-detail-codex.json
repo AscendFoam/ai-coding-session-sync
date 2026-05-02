@@ -1,0 +1,250 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2026-04-29T10:00:00Z",
+  "session": {
+    "session_key": "codex:transcript:session-sample-001",
+    "tool": "codex",
+    "source_kind": "transcript",
+    "native_session_id": "session-sample-001",
+    "title": "Implement compare inspector",
+    "native_title": "Implement compare inspector",
+    "project_id": "sample-project",
+    "project_label": "sample-project",
+    "updated_at": "2026-04-25T07:58:30Z",
+    "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-sample.jsonl",
+    "cwd": "${PROJECT_ROOT}",
+    "goal_candidate": "Continue implementing inspect compare metadata for the Web UI.",
+    "score": 243,
+    "score_reasons": [
+      "cwd exactly matches project root",
+      "2 user excerpt(s)",
+      "7 assistant excerpt(s)",
+      "goal candidate available",
+      "title available",
+      "updated timestamp available"
+    ],
+    "excerpt_count": 4,
+    "total_excerpt_count": 9,
+    "total_user_count": 2,
+    "total_assistant_count": 7,
+    "raw_message_count": 9,
+    "selected_excerpt_count": 4,
+    "all_excerpt_count": 9,
+    "device_id": "sample-macbook",
+    "provider_profile": "local",
+    "latest_state": "ready",
+    "latest_snapshot_id": "20260425T080000Z-sample-macbook-codex",
+    "latest_candidates": [
+      "20260425T080000Z-sample-macbook-codex"
+    ],
+    "has_handoff": true,
+    "has_patch": false,
+    "patch_replay_state": "none",
+    "status_flags": []
+  },
+  "manifest": {
+    "schema_version": "0.1.0",
+    "snapshot_id": "20260425T080000Z-sample-macbook-codex",
+    "created_at": "2026-04-25T08:00:00+00:00",
+    "project": {
+      "id": "sample-project",
+      "root_hint": ".",
+      "git_remote": "https://example.com/org/sample-project.git",
+      "branch": "main",
+      "head": "abc1234",
+      "dirty": false
+    },
+    "source": {
+      "tool": "codex",
+      "tool_version": "unknown",
+      "provider_profile": "local",
+      "device_id": "sample-macbook",
+      "contexts": [
+        {
+          "tool": "codex",
+          "source_kind": "transcript",
+          "session_id": "session-sample-001",
+          "title": "Implement compare inspector",
+          "updated_at": "2026-04-25T07:58:30Z",
+          "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-sample.jsonl",
+          "excerpt_count": 4,
+          "total_excerpt_count": 9,
+          "total_user_count": 2,
+          "total_assistant_count": 7,
+          "score": 243,
+          "score_reasons": [
+            "cwd exactly matches project root",
+            "2 user excerpt(s)",
+            "7 assistant excerpt(s)",
+            "goal candidate available",
+            "title available",
+            "updated timestamp available"
+          ],
+          "goal_candidate": "Continue implementing inspect compare metadata for the Web UI."
+        }
+      ]
+    },
+    "artifacts": {
+      "handoff": "handoffs/20260425T080000Z-sample-macbook-codex.md",
+      "recent_turns": "excerpts/20260425T080000Z-sample-macbook-codex.jsonl",
+      "patch": null,
+      "native": []
+    },
+    "redaction": {
+      "enabled": true,
+      "ruleset": "default",
+      "warnings": []
+    },
+    "compatibility": {
+      "import_strategy": "handoff",
+      "native_resume_supported": "unknown"
+    }
+  },
+  "inspect": {
+    "codex": [
+      {
+        "tool": "codex",
+        "source_kind": "transcript",
+        "session_id": "session-sample-001",
+        "title": "Implement compare inspector",
+        "updated_at": "2026-04-25T07:58:30Z",
+        "cwd": "${PROJECT_ROOT}",
+        "transcript_path": "${PROJECT_ROOT}/.fixtures/codex/rollout-sample.jsonl",
+        "score": 243,
+        "score_reasons": [
+          "cwd exactly matches project root",
+          "2 user excerpt(s)",
+          "7 assistant excerpt(s)",
+          "goal candidate available",
+          "title available",
+          "updated timestamp available"
+        ],
+        "goal_candidate": "Continue implementing inspect compare metadata for the Web UI.",
+        "excerpt_count": 4,
+        "total_excerpt_count": 9,
+        "total_user_count": 2,
+        "total_assistant_count": 7,
+        "all_excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T07:50:00Z",
+            "text": "Review the adapter ranking strategy.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:50:12Z",
+            "text": "I will inspect ranking and compare output.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "user",
+            "created_at": "2026-04-25T07:52:00Z",
+            "text": "Continue implementing inspect compare metadata for the Web UI.",
+            "selected": true,
+            "selected_index": 1
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:52:16Z",
+            "text": "I will add compare markers to the inspect JSON output.",
+            "selected": true,
+            "selected_index": 2
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:53:02Z",
+            "text": "I am adding selected and all excerpt indexes for UI linking.",
+            "selected": true,
+            "selected_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:54:18Z",
+            "text": "I am validating the compare payload shape against the schema draft.",
+            "selected": true,
+            "selected_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:55:03Z",
+            "text": "The compare view is now easier to consume in a Web UI.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:56:41Z",
+            "text": "Next I will extract protocol contract tests into their own file.",
+            "selected": false,
+            "selected_index": null
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:58:30Z",
+            "text": "The schema contract layer is ready for Web UI fixtures.",
+            "selected": false,
+            "selected_index": null
+          }
+        ],
+        "excerpts": [
+          {
+            "role": "user",
+            "created_at": "2026-04-25T07:52:00Z",
+            "text": "Continue implementing inspect compare metadata for the Web UI.",
+            "selected_index": 1,
+            "all_excerpt_index": 3
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:52:16Z",
+            "text": "I will add compare markers to the inspect JSON output.",
+            "selected_index": 2,
+            "all_excerpt_index": 4
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:53:02Z",
+            "text": "I am adding selected and all excerpt indexes for UI linking.",
+            "selected_index": 3,
+            "all_excerpt_index": 5
+          },
+          {
+            "role": "assistant",
+            "created_at": "2026-04-25T07:54:18Z",
+            "text": "I am validating the compare payload shape against the schema draft.",
+            "selected_index": 4,
+            "all_excerpt_index": 6
+          }
+        ]
+      }
+    ]
+  },
+  "handoff": {
+    "path": "handoffs/20260425T080000Z-sample-macbook-codex.md",
+    "format": "markdown",
+    "title": "Session Handoff",
+    "updated_at": "2026-04-25T08:00:00+00:00",
+    "current_goal": "Continue implementing inspect compare metadata for the Web UI.",
+    "summary": "Codex snapshot focused on compare metadata, schema contracts, and public-safe fixture support for the first Web UI prototype.",
+    "markdown": "# Session Handoff\n\n## Current Goal\n\nContinue implementing inspect compare metadata for the Web UI.\n\n## Project State\n\n- Tool: codex\n- Repository: https://example.com/org/sample-project.git\n- Branch: main\n- HEAD: abc1234\n- Dirty worktree: False\n- Patch: (not exported)\n\n## Completed Work\n\n- Added compare metadata to `inspect --json` so `all_excerpts` exposes `selected` and `selected_index`.\n- Added reverse mapping in `excerpts` using `all_excerpt_index` for direct UI linking.\n- Split schema validation into a dedicated contract test layer.\n\n## Recent Context Summary\n\n- Latest user request: Continue implementing inspect compare metadata for the Web UI.\n- Latest selected assistant update: I am validating the compare payload shape against the schema draft.\n\n## Important Decisions\n\n- Keep exported `recent_turns.jsonl` lightweight and reserve compare metadata for `inspect --json`.\n- Treat schema files as the canonical draft contract for Web UI consumers.\n- Keep public examples synthetic and safe for a public repository.\n\n## Relevant Files\n\n- `src/aiss/cli.py`: inspect output formatting and JSON payload shape.\n- `docs/schemas/inspect-output.schema.json`: schema contract for inspect payloads.\n- `tests/test_schema_contracts.py`: contract tests for export, inspect, and public fixtures.\n- `docs/examples/public-sync-state/`: public-safe fixture pack for UI development.\n\n## Open Questions\n\n- Should the first Web UI open on latest snapshot summary or inspect compare mode?\n- Should compare view support collapsing trimmed excerpts by default?\n- Do we want a second fixture with `dirty: true` and a patch artifact for UI states?\n\n## Next Steps\n\n1. Build a snapshot summary view from `sample-manifest.json`.\n2. Build a compare timeline from `sample-inspect-output.json`.\n3. Add a handoff reader pane using `sample-handoff.md`.\n4. Wire latest pointer loading using both normal and conflict examples.\n\n## Constraints\n\n- Do not assume native resume support.\n- Do not expose auth files, real transcript paths, or live machine identifiers.\n- Do not require Web UI consumers to reconstruct compare indexes by matching text.\n\n## Verification\n\n- `inspect --json` matches schema.\n- compare indexes are consistent across `all_excerpts` and `excerpts`.\n- public fixtures are validated in `tests/test_schema_contracts.py`.\n"
+  },
+  "patch_replay": {
+    "state": "none",
+    "patch_path": null,
+    "plain_apply_state": "not-applicable",
+    "three_way_state": "not-applicable",
+    "recommended_mode": "none",
+    "recommended_reason": "Latest snapshot does not include a patch artifact, so there is nothing to replay.",
+    "recommended_command": null
+  },
+  "provenance": {
+    "session": "derived",
+    "manifest": "source-of-truth",
+    "inspect": "source-of-truth",
+    "handoff": "source-of-truth",
+    "patch_replay": "source-of-truth"
+  }
+}

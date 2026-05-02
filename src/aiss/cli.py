@@ -19,6 +19,7 @@ from .adapters import (
     extract_claude_context,
     extract_codex_context,
 )
+from .api import DEFAULT_API_HOST, DEFAULT_API_PORT, create_api_server
 from .backends import pull_git_sidecar, push_git_sidecar
 from .config import load_sync_config, require_git_sidecar_config
 from .doctor import inspect_sync_health
@@ -154,6 +155,17 @@ def build_parser() -> argparse.ArgumentParser:
     latest_resolve_parser.add_argument("--tool", choices=SUPPORTED_TOOLS, default=DEFAULT_TOOL)
     latest_resolve_parser.add_argument("snapshot", help="Snapshot id to promote as the resolved latest pointer.")
     latest_resolve_parser.set_defaults(func=cmd_latest_resolve)
+
+    serve_parser = subcommands.add_parser("serve", help="Run a local JSON API for desktop/frontend integration.")
+    serve_parser.add_argument("--host", default=DEFAULT_API_HOST, help="Host to bind the local API server.")
+    serve_parser.add_argument("--port", type=int, default=DEFAULT_API_PORT, help="Port to bind the local API server.")
+    serve_parser.add_argument(
+        "--project-root",
+        action="append",
+        default=[],
+        help="Project root to expose. Can be provided multiple times. Defaults to the current Git/project root.",
+    )
+    serve_parser.set_defaults(func=cmd_serve)
 
     return parser
 
@@ -618,6 +630,23 @@ def cmd_latest_resolve(args: argparse.Namespace) -> int:
     )
     print(f"Resolved latest pointer for {args.tool}: {snapshot}")
     print(f"Wrote: {latest_path}")
+    return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    roots = [Path(value).expanduser() for value in args.project_root] if args.project_root else [find_project_root(Path.cwd())]
+    server = create_api_server(roots, host=args.host, port=args.port)
+    actual_host, actual_port = server.server_address[:2]
+    print(f"AISS desktop API listening on http://{actual_host}:{actual_port}")
+    print("Project roots:")
+    for root in roots:
+        print(f"- {root.expanduser().resolve(strict=False)}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopping AISS desktop API server...")
+    finally:
+        server.server_close()
     return 0
 
 

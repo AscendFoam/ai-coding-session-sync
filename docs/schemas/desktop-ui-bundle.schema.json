@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-coding-session-sync.local/schemas/desktop-ui-bundle.schema.json",
+  "title": "AISS Desktop UI Bundle",
+  "description": "Draft schema for a desktop-oriented single-request UI bootstrap payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "generated_at",
+    "session_catalog",
+    "project_catalog",
+    "selected_session_detail",
+    "view_state"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "examples": [
+        "0.1.0"
+      ]
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_catalog": {
+      "type": "object"
+    },
+    "project_catalog": {
+      "type": "object"
+    },
+    "selected_session_detail": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "view_state": {
+      "$ref": "#/$defs/viewState"
+    }
+  },
+  "$defs": {
+    "activeView": {
+      "type": "string",
+      "enum": [
+        "session-library",
+        "session-detail",
+        "project-view"
+      ]
+    },
+    "toolFilter": {
+      "type": "string",
+      "enum": [
+        "all",
+        "codex",
+        "claude"
+      ]
+    },
+    "sortField": {
+      "type": "string",
+      "enum": [
+        "updated_at",
+        "score",
+        "title"
+      ]
+    },
+    "sortOrder": {
+      "type": "string",
+      "enum": [
+        "asc",
+        "desc"
+      ]
+    },
+    "dataMode": {
+      "type": "string",
+      "enum": [
+        "fixture",
+        "live"
+      ]
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "project_id",
+        "status",
+        "q",
+        "sort",
+        "order"
+      ],
+      "properties": {
+        "tool": {
+          "$ref": "#/$defs/toolFilter"
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "q": {
+          "type": "string"
+        },
+        "sort": {
+          "$ref": "#/$defs/sortField"
+        },
+        "order": {
+          "$ref": "#/$defs/sortOrder"
+        }
+      }
+    },
+    "viewState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_view",
+        "selected_session_key",
+        "selected_project_id",
+        "data_mode",
+        "filters"
+      ],
+      "properties": {
+        "active_view": {
+          "$ref": "#/$defs/activeView"
+        },
+        "selected_session_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "selected_project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data_mode": {
+          "$ref": "#/$defs/dataMode"
+        },
+        "filters": {
+          "$ref": "#/$defs/filters"
+        }
+      }
+    }
+  }
+}

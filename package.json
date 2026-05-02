@@ -1,0 +1,13 @@
+{
+  "name": "ai-session-sync-repo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test:fast": "python scripts/run_tests.py fast",
+    "test:contracts": "python scripts/run_tests.py contracts",
+    "test:desktop": "python scripts/run_tests.py desktop",
+    "test:web": "python scripts/run_tests.py web",
+    "test:python": "python scripts/run_tests.py python",
+    "test:all": "python scripts/run_tests.py all"
+  }
+}

@@ -10,6 +10,12 @@ dist/
 build/
 *.egg-info/
 
+# Frontend
+node_modules/
+.npm/
+.parcel-cache/
+.vite/
+
 # Public repo default: ignore live sync state
 .ai-session-sync/**
 !.ai-session-sync/README.md

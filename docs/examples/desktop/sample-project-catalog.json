@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2026-04-29T10:00:00Z",
+  "projects": [
+    {
+      "project_id": "sample-project",
+      "display_name": "sample-project",
+      "roots": [
+        "${PROJECT_ROOT}"
+      ],
+      "git_remote": "https://example.com/org/sample-project.git",
+      "branch": "main",
+      "head": "abc1234",
+      "session_count": 3,
+      "active_tools": [
+        "codex",
+        "claude"
+      ],
+      "latest_snapshot_ids": {
+        "codex": "20260425T080000Z-sample-macbook-codex",
+        "claude": "20260425T081500Z-sample-windows-claude"
+      },
+      "latest_conflicts": {
+        "codex": [
+          "20260425T080000Z-sample-macbook-codex",
+          "20260425T081500Z-sample-windows-codex"
+        ],
+        "claude": []
+      },
+      "sessions": [
+        {
+          "session_key": "codex:transcript:session-sample-001",
+          "tool": "codex",
+          "title": "Implement compare inspector",
+          "updated_at": "2026-04-25T07:58:30Z",
+          "goal_candidate": "Continue implementing inspect compare metadata for the Web UI.",
+          "score": 243,
+          "status_flags": []
+        },
+        {
+          "session_key": "claude:transcript:session-sample-claude-002",
+          "tool": "claude",
+          "title": "Refine compare fixture coverage",
+          "updated_at": "2026-04-25T08:13:10Z",
+          "goal_candidate": "Cover dirty, patch, and warning states in the Web UI.",
+          "score": 251,
+          "status_flags": [
+            "dirty",
+            "patch",
+            "warning"
+          ]
+        },
+        {
+          "session_key": "codex:transcript:session-sample-conflict-001",
+          "tool": "codex",
+          "title": "Patch replay recommendation review",
+          "updated_at": "2026-04-25T08:13:45Z",
+          "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+          "score": 247,
+          "status_flags": [
+            "conflict",
+            "patch"
+          ]
+        }
+      ],
+      "recommended_session_key": "codex:transcript:session-sample-conflict-001"
+    }
+  ],
+  "summary": {
+    "total_projects": 1,
+    "total_sessions": 3,
+    "tool_counts": {
+      "codex": 2,
+      "claude": 1
+    },
+    "latest_conflict_count": 1
+  },
+  "selected_project": {
+    "project_id": "sample-project",
+    "display_name": "sample-project",
+    "roots": [
+      "${PROJECT_ROOT}"
+    ],
+    "git_remote": "https://example.com/org/sample-project.git",
+    "branch": "main",
+    "head": "abc1234",
+    "session_count": 3,
+    "active_tools": [
+      "codex",
+      "claude"
+    ],
+    "latest_snapshot_ids": {
+      "codex": "20260425T080000Z-sample-macbook-codex",
+      "claude": "20260425T081500Z-sample-windows-claude"
+    },
+    "latest_conflicts": {
+      "codex": [
+        "20260425T080000Z-sample-macbook-codex",
+        "20260425T081500Z-sample-windows-codex"
+      ],
+      "claude": []
+    },
+    "sessions": [
+      {
+        "session_key": "codex:transcript:session-sample-001",
+        "tool": "codex",
+        "title": "Implement compare inspector",
+        "updated_at": "2026-04-25T07:58:30Z",
+        "goal_candidate": "Continue implementing inspect compare metadata for the Web UI.",
+        "score": 243,
+        "status_flags": []
+      },
+      {
+        "session_key": "claude:transcript:session-sample-claude-002",
+        "tool": "claude",
+        "title": "Refine compare fixture coverage",
+        "updated_at": "2026-04-25T08:13:10Z",
+        "goal_candidate": "Cover dirty, patch, and warning states in the Web UI.",
+        "score": 251,
+        "status_flags": [
+          "dirty",
+          "patch",
+          "warning"
+        ]
+      },
+      {
+        "session_key": "codex:transcript:session-sample-conflict-001",
+        "tool": "codex",
+        "title": "Patch replay recommendation review",
+        "updated_at": "2026-04-25T08:13:45Z",
+        "goal_candidate": "Resolve latest selection and review patch replay guidance in one UI flow.",
+        "score": 247,
+        "status_flags": [
+          "conflict",
+          "patch"
+        ]
+      }
+    ],
+    "recommended_session_key": "codex:transcript:session-sample-conflict-001"
+  }
+}

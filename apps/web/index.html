@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AISS Desktop Workbench</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="eyebrow">AI Coding Session Sync</div>
+          <h1>AISS Desktop Workbench</h1>
+          <p class="hero-copy">Browse sessions, inspect project sync state, and review handoffs from one product-style workspace.</p>
+        </div>
+        <div class="toolbar">
+          <div class="segmented-control segmented-control-wide" role="tablist" aria-label="Data mode">
+            <button id="sourceFixtures" class="segment" type="button" role="tab" aria-selected="false">Fixtures</button>
+            <button id="sourceLive" class="segment" type="button" role="tab" aria-selected="false">Live API</button>
+          </div>
+          <div class="segmented-control segmented-control-wide" role="tablist" aria-label="Fixture scenario">
+            <button id="fixtureClean" class="segment" type="button" role="tab" aria-selected="false">Clean</button>
+            <button id="fixtureDirty" class="segment" type="button" role="tab" aria-selected="false">Dirty</button>
+            <button id="fixtureConflict" class="segment" type="button" role="tab" aria-selected="false">Conflict</button>
+          </div>
+          <button id="refreshButton" class="command-button" type="button" title="Reload the current data source">Reload</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="surface source-surface">
+          <div class="source-strip">
+            <div class="source-strip-main">
+              <div class="section-eyebrow">Source</div>
+              <h2>Command / Status Strip</h2>
+              <p class="section-copy">Switch between fixture and live payloads, narrow the active catalog, and keep the current desktop data path visible at a glance.</p>
+            </div>
+            <div class="source-strip-status">
+              <div id="connectionMeta" class="status-inline"></div>
+              <div id="connectionSignals" class="badge-row"></div>
+            </div>
+          </div>
+          <div class="command-bar">
+            <div class="command-bar-actions">
+              <button id="commandPaletteButton" class="command-button is-accent" type="button" title="Open the command palette">Commands</button>
+              <button id="rescanButton" class="command-button" type="button" title="Rescan the current tool catalogs">Rescan</button>
+              <button id="openApiButton" class="command-button" type="button" title="Open the live API bundle in a new tab">Open Live API</button>
+              <button id="copySessionKeyButton" class="command-button" type="button" title="Copy the current session key">Copy Session Key</button>
+            </div>
+          <div class="command-bar-feedback">
+              <div id="actionFeedback" class="status-inline" data-testid="action-feedback"></div>
+            </div>
+          </div>
+          <div class="activity-log-shell">
+            <div class="activity-log-header">
+              <div>
+                <div class="section-eyebrow">History</div>
+                <h3>Command History</h3>
+              </div>
+              <div class="command-bar-actions">
+                <button id="exportHistoryButton" class="command-button" type="button" title="Export this browser session's command history">Export Log</button>
+                <button id="clearActivityLogButton" class="command-button" type="button" title="Clear recent command activity">Clear Log</button>
+              </div>
+            </div>
+            <div class="history-controls">
+              <div class="segmented-control history-filter-control" role="tablist" aria-label="History filter">
+                <button id="historyFilterAll" class="segment" type="button" role="tab" aria-selected="false">All</button>
+                <button id="historyFilterWarn" class="segment" type="button" role="tab" aria-selected="false">Warnings</button>
+                <button id="historyFilterSync" class="segment" type="button" role="tab" aria-selected="false">Sync</button>
+                <button id="historyFilterDetail" class="segment" type="button" role="tab" aria-selected="false">Detail</button>
+              </div>
+              <div class="segmented-control history-group-control" role="tablist" aria-label="History group by">
+                <button id="historyGroupSource" class="segment" type="button" role="tab" aria-selected="false">Source</button>
+                <button id="historyGroupCategory" class="segment" type="button" role="tab" aria-selected="false">Category</button>
+                <button id="historyGroupFlat" class="segment" type="button" role="tab" aria-selected="false">Flat</button>
+              </div>
+              <div class="segmented-control history-sort-control" role="tablist" aria-label="History sort order">
+                <button id="historySortDesc" class="segment" type="button" role="tab" aria-selected="false">Newest</button>
+                <button id="historySortAsc" class="segment" type="button" role="tab" aria-selected="false">Oldest</button>
+              </div>
+            </div>
+            <p class="section-copy detail-tab-copy">Recent commands stay alive for this browser session so the workbench still has memory after a refresh.</p>
+            <div id="activityLog" class="activity-log-list" data-testid="activity-log"></div>
+          </div>
+          <div class="controls-grid">
+            <label class="field">
+              <span class="field-label">Live API Base</span>
+              <input id="liveApiBase" class="text-input" type="text" value="http://127.0.0.1:8765" spellcheck="false">
+            </label>
+            <label class="field">
+              <span class="field-label">Tool Filter</span>
+              <select id="toolFilter" class="select-input">
+                <option value="all">All</option>
+                <option value="codex">Codex</option>
+                <option value="claude">Claude</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Status Filter</span>
+              <select id="statusFilter" class="select-input">
+                <option value="">Any</option>
+                <option value="dirty">Dirty</option>
+                <option value="patch">Patch</option>
+                <option value="conflict">Conflict</option>
+                <option value="warning">Warning</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Search</span>
+              <input id="searchInput" class="text-input" type="search" placeholder="session title, goal, project">
+            </label>
+          </div>
+          <div id="connectionPanel" class="command-strip-grid"></div>
+          <div id="workspaceBanner" class="workspace-banner" hidden></div>
+        </section>
+
+        <section class="workspace">
+          <section id="librarySurface" class="surface workbench-column">
+            <div class="column-header">
+              <div>
+                <div class="section-eyebrow">Session Library</div>
+                <h2>Session Library</h2>
+                <p class="section-copy">Scan synced Codex and Claude conversations, then jump straight into the one you want to continue.</p>
+              </div>
+              <div id="libraryMeta" class="status-inline"></div>
+            </div>
+            <div class="column-body">
+              <div id="librarySummary" class="inline-metrics"></div>
+              <div id="sessionList" class="stack"></div>
+            </div>
+          </section>
+
+          <section id="projectSurface" class="surface workbench-column">
+            <div class="column-header">
+              <div>
+                <div class="section-eyebrow">Project View</div>
+                <h2 id="projectTitle">No project selected</h2>
+                <p id="projectMeta" class="section-copy">Select a session or project to inspect repository state, latest pointers, and ranked local contexts.</p>
+              </div>
+              <div id="projectBadges" class="badge-row"></div>
+            </div>
+            <div class="column-body">
+              <div id="projectBanner" class="section-banner" hidden></div>
+              <div id="projectSummary" class="metric-grid"></div>
+
+              <section class="column-section">
+                <div class="panel-title-row">
+                  <div>
+                    <div class="section-eyebrow">Signals</div>
+                    <h3>Sync Signals</h3>
+                  </div>
+                </div>
+                <div id="projectSignals" class="stack"></div>
+              </section>
+
+              <section class="column-section">
+                <div class="panel-title-row">
+                  <div>
+                    <div class="section-eyebrow">Contexts</div>
+                    <h3>Ranked Local Contexts</h3>
+                  </div>
+                </div>
+                <div id="projectContexts" class="stack"></div>
+              </section>
+
+              <section class="column-section">
+                <div class="panel-title-row">
+                  <div>
+                    <div class="section-eyebrow">Project Sessions</div>
+                    <h3>Sessions In This Project</h3>
+                  </div>
+                </div>
+                <div id="projectSessionList" class="stack"></div>
+              </section>
+
+              <section class="column-section">
+                <div class="panel-title-row">
+                  <div>
+                    <div class="section-eyebrow">Catalog</div>
+                    <h3>All Projects</h3>
+                  </div>
+                </div>
+                <div id="projectList" class="stack"></div>
+              </section>
+            </div>
+          </section>
+
+          <section id="detailSurface" class="surface workbench-column detail-workbench">
+            <div class="column-header">
+              <div>
+                <div class="section-eyebrow">Session Detail</div>
+                <h2 id="detailTitle">No session selected</h2>
+                <p id="detailMeta" class="section-copy">Open one session to inspect snapshot detail, patch replay guidance, excerpt windows, and handoff markdown.</p>
+              </div>
+              <div id="detailBadges" class="badge-row"></div>
+            </div>
+            <div class="column-body detail-body">
+              <div id="detailBanner" class="section-banner" hidden></div>
+              <div id="detailSummary" class="metric-grid"></div>
+              <section class="detail-tabs-shell">
+                <div class="detail-tabs-header">
+                  <div>
+                    <div class="section-eyebrow">Detail Panels</div>
+                    <h3 id="detailTabTitle">Snapshot Detail</h3>
+                  </div>
+                  <div class="segmented-control detail-tabs-control" role="tablist" aria-label="Session detail panels">
+                    <button id="detailTabManifest" class="segment" type="button" role="tab" aria-selected="false" data-testid="detail-tab-manifest">Manifest</button>
+                    <button id="detailTabPatch" class="segment" type="button" role="tab" aria-selected="false" data-testid="detail-tab-patch">Patch</button>
+                    <button id="detailTabCompare" class="segment" type="button" role="tab" aria-selected="false" data-testid="detail-tab-compare">Excerpts</button>
+                    <button id="detailTabHandoff" class="segment" type="button" role="tab" aria-selected="false" data-testid="detail-tab-handoff">Handoff</button>
+                  </div>
+                </div>
+                <p id="detailTabDescription" class="section-copy detail-tab-copy"></p>
+
+                <section id="detailPanelManifest" class="column-section detail-tab-panel" role="tabpanel">
+                  <div id="manifestPanel" class="stack"></div>
+                </section>
+
+                <section id="detailPanelPatch" class="column-section detail-tab-panel" role="tabpanel" hidden>
+                  <div id="patchReplayPanel" class="stack"></div>
+                </section>
+
+                <section id="detailPanelCompare" class="column-section detail-tab-panel" role="tabpanel" hidden>
+                  <div class="compare-grid">
+                    <div>
+                      <div class="panel-subtitle">Selected Excerpts</div>
+                      <div id="selectedExcerpts" class="stack"></div>
+                    </div>
+                    <div>
+                      <div class="panel-subtitle">All Excerpts</div>
+                      <div id="allExcerpts" class="stack"></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section id="detailPanelHandoff" class="column-section detail-tab-panel" role="tabpanel" hidden>
+                  <article id="handoffPanel" class="handoff-panel"></article>
+                </section>
+              </section>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <div id="commandPaletteOverlay" class="palette-overlay" hidden>
+      <div class="palette-scrim" data-close-palette="true"></div>
+      <section class="palette-dialog" role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="palette-header">
+          <div>
+            <div class="section-eyebrow">Commands</div>
+            <h2>Command Palette</h2>
+          </div>
+          <button id="closeCommandPaletteButton" class="command-button" type="button" title="Close the command palette">Close</button>
+        </div>
+        <label class="field">
+          <span class="field-label">Search Commands</span>
+          <input id="commandSearchInput" class="text-input" type="search" placeholder="rescan, conflict, patch, handoff">
+        </label>
+        <div id="commandPaletteMeta" class="status-inline"></div>
+        <div id="commandPaletteList" class="stack"></div>
+      </section>
+    </div>
+  </body>
+</html>
